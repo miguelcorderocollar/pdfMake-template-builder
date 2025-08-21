@@ -1,0 +1,136 @@
+# PDFMake Template Builder
+
+A modern, intuitive web application for creating and customizing PDFMake templates through a visual drag-and-drop interface.
+
+## 🎯 Features
+
+### Core Functionality
+- **Visual Template Builder** - Drag-and-drop interface for intuitive template creation
+- **Element Types** - Text, tables, images, lists, columns, and page breaks
+- **Real-time Customization** - Live property editing with immediate visual feedback
+- **PDF Preview** - Instant preview in canvas or PDF format
+- **Template Management** - Save, load, import, and export templates
+- **Image Upload** - Drag-and-drop image upload with automatic format conversion
+- **Error Handling** - Comprehensive error detection and user-friendly messages
+
+### User Experience
+- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
+- **Dark Mode** - Automatic system preference detection with manual override
+- **Keyboard Shortcuts** - Efficient navigation and actions
+- **Accessibility** - WCAG compliant with screen reader support
+- **Example Templates** - Pre-built examples from pdfMake documentation
+
+### Technical Excellence
+- **Client-Side Only** - No backend required, works entirely in browser
+- **Local Storage** - Templates saved locally with export/import options
+- **Modern Stack** - Next.js 15+, TypeScript, Tailwind CSS, @shadcn/ui, Bun
+- **Performance Optimized** - Virtual scrolling, memoization, and lazy loading
+- **Vercel Ready** - Optimized for Vercel deployment
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Set up @shadcn/ui
+bunx shadcn@latest init --yes
+
+# Start development server
+bun dev
+
+# Open http://localhost:3000
+```
+
+## 📋 Requirements Covered
+
+✅ **Intuitive UI** - Modern drag-and-drop interface with visual feedback  
+✅ **Local Operation** - 100% client-side with localStorage persistence  
+✅ **Element Addition** - Easy element palette with drag-and-drop placement  
+✅ **Customization** - Comprehensive properties panel for all elements  
+✅ **Image Upload** - Drag-and-drop with automatic base64 conversion  
+✅ **Download/Export** - JSON export with copy-to-clipboard functionality  
+✅ **PDF Preview** - Real-time preview with iframe rendering  
+✅ **Import/Paste** - JSON import with existing template support  
+✅ **Example Templates** - Pre-loaded examples from pdfMake documentation  
+✅ **Error Handling** - User-friendly error messages and suggestions  
+✅ **Tech Stack** - TypeScript, Next.js, Bun, Vercel deployment ready  
+
+## 📁 Project Structure
+
+```
+pdfmake-builder/
+├── src/
+│   ├── app/                 # Next.js app router pages
+│   ├── components/          # React components
+│   │   ├── ui/              # Reusable UI components
+│   │   ├── elements/        # Template element components
+│   │   ├── canvas/          # Canvas and drag-drop logic
+│   │   └── preview/         # PDF preview system
+│   ├── services/           # Business logic and utilities
+│   ├── types/              # TypeScript type definitions
+│   ├── lib/                # External library configurations
+│   └── utils/              # Utility functions
+├── docs/                   # Documentation and examples
+└── public/                 # Static assets
+```
+
+## 🛠️ Development
+
+### Prerequisites
+- Node.js 18+
+- Bun (recommended) or npm
+
+### Available Scripts
+```bash
+bun dev          # Start development server
+bun build        # Build for production
+bun start        # Start production server
+bun lint         # Run ESLint
+bun type-check   # Run TypeScript checking
+```
+
+### Environment Variables
+```env
+NEXT_PUBLIC_APP_NAME=PDFMake Template Builder
+NEXT_PUBLIC_VERSION=1.0.0
+```
+
+## 📚 Documentation
+
+See the `docs/` folder for comprehensive documentation:
+- `docs/plan/` - Development planning and specifications
+- `docs/examples/` - pdfMake example templates
+
+## 🎨 Design System
+
+Built with a modern design system featuring:
+- Consistent color palette and typography
+- Responsive grid system
+- Micro-interactions and smooth animations
+- Dark/light mode support
+- Accessible component library
+
+## 🔧 Customization
+
+The application is built to be highly customizable:
+- **Themes** - Easy theme switching and customization
+- **Element Types** - Plugin system for custom elements
+- **Export Formats** - Extensible export system
+- **Keyboard Shortcuts** - Customizable hotkeys
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📞 Support
+
+For questions or issues, please open an issue on GitHub or check the documentation in the `docs/` folder.
