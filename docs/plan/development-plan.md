@@ -6,6 +6,28 @@ This plan breaks down the development into **testable milestones** that you can 
 
 ---
 
+## 🎯 **Milestone 0: Flow-first MVP (styles-simple default)** ⏱️ ~2 hours
+
+### **Objective**: Replace freeform canvas with flow editor mapped to pdfMake
+### **Deliverable**: App loads `styles-simple` by default, edit flow content and styles
+
+#### **Tasks:**
+1. Load default example `docs/examples/styles-simple.js` at startup
+2. Implement `ContentList` with operations: add, edit, insert above/below, move, delete (confirm)
+3. Implement `StylesPanel` to view/edit `fontSize`, `bold`, `italics`
+4. Wire style application to selected content item (single or array of styles)
+5. Add "Clear Template" destructive confirmation and optional "Reload Default"
+6. Debounced pdfMake preview render
+
+#### **Testing Criteria:**
+- ✅ Default example content appears on first load
+- ✅ Can add/edit/reorder/delete content items
+- ✅ Can edit styles and apply them to items
+- ✅ Clear action asks for confirmation and empties template
+- ✅ Preview updates and matches pdfMake output for supported items
+
+---
+
 ## 🎯 **Milestone 1: Project Setup & Foundation** ⏱️ ~2 hours
 
 ### **Objective**: Get the basic project running with minimal UI
@@ -44,8 +66,8 @@ This plan breaks down the development into **testable milestones** that you can 
 
 ## 🎯 **Milestone 2: Core UI Components** ⏱️ ~4 hours
 
-### **Objective**: Build the main interface components
-### **Deliverable**: Functional sidebar, canvas, and properties panel
+### **Objective**: Build interface components aligned with flow editor
+### **Deliverable**: Functional ContentList, StylesPanel, and Properties panel
 
 #### **Tasks:**
 1. **Header Component**
@@ -58,22 +80,23 @@ This plan breaks down the development into **testable milestones** that you can 
    - Element palette with drag previews
    - Basic element types (Text, Table, Image)
 
-3. **Canvas Component**
-   - Drop zones for elements
-   - Basic element rendering
-   - Selection and hover states
+3. **Content List Component**
+   - Ordered flow list rendering
+   - Selection and inline edit states
 
 4. **Properties Panel**
    - Basic property controls (width, height, position)
    - Real-time property updates
    - Property validation
+   - Contextual tooltips for all controls
+   - Help system integration
 
 #### **Testing Criteria:**
 - ✅ All components render without errors
 - ✅ Sidebar tabs switch correctly
-- ✅ Elements show in palette
-- ✅ Canvas accepts drops (even if just visual)
-- ✅ Properties panel updates element appearance
+- ✅ Content items render and are selectable
+- ✅ Inline editing works and persists
+- ✅ Properties panel updates selected item
 
 ---
 
@@ -120,18 +143,24 @@ This plan breaks down the development into **testable milestones** that you can 
 #### **Tasks:**
 1. **Drag System**
    - HTML5 drag and drop implementation
-   - Visual drag previews
-   - Drop zone highlighting
+   - Visual drag previews with custom cursors
+   - Drop zone highlighting with collision detection
 
 2. **Position Management**
-   - Grid-based positioning
-   - Snap-to-grid functionality
-   - Element collision detection
+   - Grid-based positioning with magnetic edges
+   - Snap-to-grid functionality with visual guides
+   - Element collision detection and resolution
 
 3. **Visual Feedback**
-   - Drag states (hover, dragging, valid/invalid drops)
-   - Selection indicators
-   - Resize handles
+   - Comprehensive drag states (hover, dragging, valid/invalid drops)
+   - Selection indicators and multi-element selection
+   - Resize handles with aspect ratio constraints
+   - Touch device support with gesture recognition
+
+4. **Advanced Features**
+   - Undo/redo integration for drag operations
+   - Multi-element drag with group bounds
+   - Performance optimizations for large templates
 
 #### **Testing Criteria:**
 - ✅ Elements can be dragged from sidebar to canvas
@@ -212,21 +241,33 @@ This plan breaks down the development into **testable milestones** that you can 
    - pdfMake error parsing
    - User-friendly error messages
    - Recovery suggestions
+   - Confirmation dialogs for destructive actions
 
 2. **Validation System**
    - Element property validation
    - Template structure validation
    - Input sanitization
+   - Unsaved changes protection
 
-3. **Performance Optimization**
+3. **Help & User Experience**
+   - Comprehensive tooltip system
+   - Interactive help panels
+   - Tutorial system for new users
+   - Contextual help triggers
+
+4. **Performance Optimization**
    - Component memoization
    - Virtual scrolling for large templates
    - Image optimization
+   - Help system lazy loading
 
 #### **Testing Criteria:**
 - ✅ All pdfMake errors show helpful messages
 - ✅ Invalid inputs are caught with suggestions
 - ✅ Can recover from errors without losing work
+- ✅ Confirmation dialogs work for destructive actions
+- ✅ Help system provides contextual guidance
+- ✅ Tooltips appear correctly on hover
 - ✅ Large templates (50+ elements) perform well
 - ✅ Memory usage stays reasonable
 

@@ -1,7 +1,42 @@
 # PDFMake Template Builder - Technical Specification
 
+## 📚 Unified Terminology Reference
+
+See `logic-spec.md` for complete glossary and terminology definitions. Key terms used consistently across documents:
+
+- **TemplateElement**: Primary interface for template elements
+- **ElementType**: Enumeration of available element types
+- **ElementProperties**: Configuration object for element settings
+- **DocDefinition**: pdfMake's JSON structure for PDF output
+- **AppState**: Global application state structure
+- **AppAction**: Flux-style action objects for state updates
+
 ## Overview
 A client-side web application for building and customizing PDFMake templates through an intuitive visual interface.
+
+## Phase 0: Flow-first, example-driven MVP
+
+### Scope
+- Load `docs/examples/styles-simple.js` as the initial `docDefinition`.
+- Support a limited, pdfMake-aligned editing surface:
+  - `content` items: string paragraphs and `{ text, style? }` nodes
+  - `styles` properties: `fontSize`, `bold`, `italics`
+- Provide a destructive "Clear Template" action with confirmation dialog.
+
+### Non-Goals (Phase 0)
+- Arbitrary absolute positioning
+- Complex elements (tables, images, columns, lists) beyond viewing the example
+- Drag/resize handles on a freeform canvas
+
+### Data Flow (Phase 0)
+```
+User edits content/styles → AppState.docDefinition updates → Debounced pdfMake render → Preview iframe updates
+```
+
+### Persistence
+- Auto-load default example on first run
+- Save current working `docDefinition` to localStorage
+- Optional action to reload the default example
 
 ## Architecture
 
@@ -21,25 +56,21 @@ A client-side web application for building and customizing PDFMake templates thr
 
 ## Core Components
 
-### 1. Template Builder Interface
+### 1. Template Builder Interface (Phase 0 focus)
 ```
 src/components/
 ├── TemplateBuilder/
-│   ├── Canvas.tsx          # Main drag-drop area
-│   ├── ElementPanel.tsx    # Available elements sidebar
-│   ├── PropertiesPanel.tsx # Element customization
-│   └── Toolbar.tsx         # Save/export/preview actions
+│   ├── ContentList.tsx     # Ordered flow list of content items
+│   ├── StylesPanel.tsx     # Styles editor/applicator
+│   ├── PropertiesPanel.tsx # Inline editor for selected item
+│   └── Toolbar.tsx         # Save/export/preview, Clear Template
 ```
 
-### 2. Element System
+### 2. Element System (Phase 0 subset)
 ```
 src/components/elements/
-├── TextElement.tsx
-├── TableElement.tsx
-├── ImageElement.tsx
-├── ListElement.tsx
-├── ColumnElement.tsx
-└── PageElement.tsx
+├── FlowStringItem.tsx      # Plain string paragraph
+└── FlowTextNodeItem.tsx    # { text, style? }
 ```
 
 ### 3. Template Management
@@ -52,14 +83,13 @@ src/services/
 
 ## Data Structure
 
-### Template Definition
+### Template Definition (Phase 0 relevant subset)
 ```typescript
 interface Template {
   id: string;
   name: string;
   description?: string;
   docDefinition: DocDefinition;
-  elements: TemplateElement[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,24 +114,20 @@ interface ElementProperties {
 }
 ```
 
-### DocDefinition Mapping
-- Template elements automatically generate pdfMake docDefinition
-- Real-time synchronization between visual editor and pdfMake structure
-- Validation against pdfMake schema
+### DocDefinition Mapping (Phase 0)
+- UI edits directly mutate `docDefinition.content` and `docDefinition.styles`
+- Real-time synchronization and validation are limited to supported properties
 
 ## Key Features Implementation
 
-### 1. Drag & Drop System
-- HTML5 Drag and Drop API
-- React DnD for enhanced functionality
-- Grid-based positioning system
-- Snap-to-grid alignment
+### 1. Flow Editing System (Phase 0)
+- Ordered list operations: add/insert/move/delete
+- Inline text editor for strings and text nodes
+- Style application via style names
 
-### 2. Element Customization
-- Property panels for each element type
-- Real-time preview updates
-- Style inheritance system
-- Theme support
+### 2. Styles Customization (Phase 0)
+- Edit `fontSize`, `bold`, `italics` per style key
+- Apply single or multiple styles to selected item
 
 ### 3. Image Management
 - File upload with drag-and-drop
@@ -109,24 +135,18 @@ interface ElementProperties {
 - Image resizing and compression
 - Support for URLs and local files
 
-### 4. Preview System
-- Multiple preview modes:
-  - Canvas preview (visual representation)
-  - PDF preview (iframe with getDataUrl)
-  - Real-time preview toggle
-- Error highlighting in preview
+### 4. Preview System (Phase 0)
+- PDF preview (iframe via data URL)
+- Debounced updates
+- Basic error surfacing
 
-### 5. Template Import/Export
-- JSON import/export functionality
-- Copy to clipboard
-- Example template library
-- Template sharing via URL parameters
+### 5. Template Import/Export (Phase 0)
+- JSON export and copy to clipboard
+- Load default example; import of other examples is out of scope initially
 
-### 6. Error Handling
-- pdfMake error parsing and display
-- Element validation
-- User-friendly error messages
-- Recovery suggestions
+### 6. Error Handling (Phase 0)
+- Parse and display pdfMake errors for supported nodes
+- Guard invalid properties; minimal recovery suggestions
 
 ## Performance Considerations
 

@@ -1,5 +1,63 @@
 # PDFMake Template Builder - UI Specification
 
+## Phase 0: Flow-first editor aligned with pdfMake (styles-simple default)
+
+### Rationale
+To better match how pdfMake actually works, the MVP will avoid freeform, absolute positioning. Instead, we will model and edit the `docDefinition` directly, focusing on the `content` array (flow layout) and the `styles` object. This reduces errors and confusion versus draggable blocks that don’t map to pdfMake semantics.
+
+### Default Template on Load
+- **Initial state**: Load `docs/examples/styles-simple.js` as the default template.
+- **Scope**: Parse and store `content` and `styles` from the example. The rest of the pdfMake keys are optional for Phase 0.
+
+### Core Editing Model (Phase 0)
+- **Content List (Flow)**: Display the `docDefinition.content` as an ordered list.
+  - Supported items (Phase 0):
+    - String paragraphs
+    - Text nodes `{ text: string; style?: string | string[] }`
+  - Inline `\n\n` is rendered as paragraph breaks; kept in the node.
+- **Operations**:
+  - Add paragraph (string)
+  - Add text node (with optional style)
+  - Edit content text inline
+  - Apply/clear style (single or multiple)
+  - Insert above/below
+  - Move up/down
+  - Delete item (with confirmation)
+- **Validation**: Only allow properties supported by pdfMake for Phase 0 items.
+
+### Styles Panel (Phase 0)
+- List styles from `docDefinition.styles` (e.g., `header`, `subheader`, `quote`, `small`).
+- Edit style properties relevant to Phase 0: `fontSize`, `bold`, `italics`.
+- Apply selected style(s) to the currently selected content item.
+
+### Destructive Actions
+- **Clear Template**: Destructive confirmation dialog to clear the current template (empties `content` and `styles`).
+  - Title: “Clear template?”
+  - Message: “This will remove all content and styles. This action cannot be undone.”
+  - Buttons: [Cancel] [Clear]
+- Future (optional): “Reload Default Example” to restore `styles-simple` verbatim.
+
+### Preview (Phase 0)
+- Single Preview panel renders pdfMake output (data URL) from current `docDefinition`.
+- Debounced updates on content/style changes.
+
+### Navigation and Layout (Phase 0)
+- Sidebar tabs simplified to: **Content**, **Styles**, **Templates** (Templates shows only the default for now).
+- Canvas is replaced by the **Content List** for Phase 0. No drag-resize handles.
+- Properties panel shows context-aware editor for selected content item (text + styles).
+
+### Keyboard Shortcuts (Phase 0 additions)
+- Enter: Finish inline edit
+- Esc: Cancel inline edit
+- Delete/Backspace: Delete selected item (asks for confirmation)
+
+### Success Criteria (Phase 0)
+- App loads with `styles-simple` default.
+- User can add/edit/reorder/delete content items in flow.
+- User can view and edit `styles` and apply them to items.
+- PDF preview updates correctly and matches pdfMake rules for supported items.
+
+
 ## Layout Architecture
 
 ### Main Application Layout
@@ -373,6 +431,335 @@ interface Theme {
 - **Manual Toggle**: User can override system preference
 - **Smooth Transitions**: Animated theme switching
 - **Theme Persistence**: Save user preference in localStorage
+
+## 💡 Tooltips & Help System
+
+### Tooltip Architecture
+
+#### Tooltip Types
+```
+ContextualTooltips     // Element-specific guidance
+ActionTooltips        // Button/function explanations
+ValidationTooltips    // Error/warning messages
+HelpTooltips         // General assistance
+```
+
+#### Tooltip Components
+```typescript
+interface TooltipSystem {
+  TooltipProvider: React.Context;
+  useTooltip: () => TooltipHook;
+  TooltipContainer: React.Component;
+  TooltipTrigger: React.Component;
+  TooltipContent: React.Component;
+}
+
+interface TooltipConfig {
+  content: string | ReactNode;
+  position: 'top' | 'bottom' | 'left' | 'right' | 'auto';
+  delay: number;
+  duration: number;
+  interactive: boolean;
+  theme: 'light' | 'dark';
+  maxWidth: number;
+}
+```
+
+### Contextual Tooltips
+
+#### Element-Specific Tooltips
+```
+Text Element:
+┌─────────────────────────────────────┐
+│ 📝 Text Element                     │
+│                                    │
+│ • Click to edit content           │
+│ • Drag to reposition              │
+│ • Use properties panel for styling│
+│                                    │
+│ [Learn More]                      │
+└─────────────────────────────────────┘
+
+Table Element:
+┌─────────────────────────────────────┐
+│ 📊 Table Element                    │
+│                                    │
+│ • Double-click cells to edit      │
+│ • Drag column borders to resize   │
+│ • Right-click for context menu    │
+│                                    │
+│ [Learn More]                      │
+└─────────────────────────────────────┘
+```
+
+#### Action Button Tooltips
+```
+Save Button:
+┌─────────────────────────────────────┐
+│ 💾 Save Template                    │
+│                                    │
+│ Saves current template to          │
+│ local storage. Use Ctrl+S         │
+│                                    │
+│ Keyboard: Ctrl/Cmd + S            │
+└─────────────────────────────────────┘
+
+Preview Button:
+┌─────────────────────────────────────┐
+│ 👁️ Preview PDF                      │
+│                                    │
+│ Generate and preview PDF output   │
+│ in new tab or embedded view       │
+│                                    │
+│ Keyboard: Ctrl/Cmd + P            │
+└─────────────────────────────────────┘
+```
+
+### Interactive Help System
+
+#### Help Components Hierarchy
+```
+HelpSystem/
+├── HelpProvider
+├── HelpButton
+├── HelpPanel
+├── TutorialOverlay
+├── ContextualHelp
+└── QuickStartGuide
+```
+
+#### Help Panel Interface
+```
+Help Panel Layout:
+┌─────────────────────────────────────┐
+│ 🔍 Search Help                     │
+├─────────────────────────────────────┤
+│ [Search topics...]                 │
+├─────────────────────────────────────┤
+│ 📚 Getting Started                 │
+│ ├── Creating your first template   │
+│ ├── Adding elements                │
+│ └── Customizing elements           │
+├─────────────────────────────────────┤
+│ 🎨 Elements                        │
+│ ├── Text elements                  │
+│ ├── Tables                         │
+│ ├── Images                         │
+│ └── Advanced elements              │
+├─────────────────────────────────────┤
+│ ⚙️ Settings & Preferences          │
+│ ├── Keyboard shortcuts             │
+│ ├── Theme settings                 │
+│ └── Export options                 │
+└─────────────────────────────────────┘
+```
+
+### Tutorial System
+
+#### Interactive Tutorials
+```typescript
+interface TutorialStep {
+  id: string;
+  title: string;
+  content: string;
+  target: string;        // CSS selector for highlight
+  position: 'top' | 'bottom' | 'left' | 'right';
+  action: 'click' | 'drag' | 'type' | 'next';
+  nextStep?: string;
+}
+
+interface Tutorial {
+  id: string;
+  title: string;
+  description: string;
+  steps: TutorialStep[];
+  prerequisites?: string[];
+  estimatedTime: number;
+}
+```
+
+#### Tutorial Flow Example
+```
+Step 1: Welcome
+┌─────────────────────────────────────┐
+│ 🎉 Welcome to PDFMake Builder!      │
+│                                    │
+│ Let's create your first template   │
+│ together.                         │
+│                                    │
+│ [Start Tutorial] [Skip]           │
+└─────────────────────────────────────┘
+
+Step 2: Add Text Element
+┌─────────────────────────────────────┐
+│ 📝 Adding Your First Element        │
+│                                    │
+│ Drag a "Text" element from the     │
+│ sidebar to the canvas area.       │
+│                                    │
+│ [Previous] [Next]                 │
+└─────────────────────────────────────┘
+```
+
+### Contextual Help Triggers
+
+#### Smart Help Detection
+- **New User Detection**: Show welcome tutorial
+- **Element Hover**: Show element-specific tips
+- **Error States**: Display relevant help topics
+- **Idle Time**: Suggest next steps or tutorials
+- **Feature Discovery**: Highlight unused features
+
+#### Help Shortcuts
+```
+F1 Key          // Open main help panel
+Shift + ?       // Quick help overlay
+Ctrl + H        // Contextual help
+Escape          // Close help overlays
+```
+
+## 🔒 Confirmation Dialogs
+
+### Dialog System Architecture
+
+#### Confirmation Dialog Types
+```
+DestructiveActions    // Delete, clear, reset
+UnsavedChanges       // Navigation with unsaved work
+OverwriteActions     // Save with existing name
+LargeOperations      // Heavy processing tasks
+SecurityActions      // File operations, imports
+```
+
+#### Dialog Component Structure
+```typescript
+interface ConfirmationDialog {
+  type: DialogType;
+  title: string;
+  message: string;
+  details?: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  variant: 'danger' | 'warning' | 'info' | 'success';
+  showDontAskAgain: boolean;
+}
+
+interface DialogActions {
+  onConfirm: () => void;
+  onCancel: () => void;
+  onDontAskAgain?: (checked: boolean) => void;
+}
+```
+
+### Dialog Design Patterns
+
+#### Destructive Action Dialog
+```
+Delete Element Dialog:
+┌─────────────────────────────────────┐
+│ ⚠️ Delete Element?                  │
+├─────────────────────────────────────┤
+│ Are you sure you want to delete    │
+│ "Header Text"? This action cannot │
+│ be undone.                        │
+├─────────────────────────────────────┤
+│ □ Don't ask me again for element   │
+│   deletions                        │
+├─────────────────────────────────────┤
+│ [Cancel]                  [Delete] │
+└─────────────────────────────────────┘
+```
+
+#### Unsaved Changes Dialog
+```
+Unsaved Changes Dialog:
+┌─────────────────────────────────────┐
+│ 💾 Unsaved Changes                  │
+├─────────────────────────────────────┤
+│ Your template has unsaved changes. │
+│ What would you like to do?        │
+├─────────────────────────────────────┤
+│ [Discard Changes] [Save & Continue]│
+├─────────────────────────────────────┤
+│                                    │
+│ □ Don't ask me again for this     │
+│   session                          │
+└─────────────────────────────────────┘
+```
+
+#### Large Operation Dialog
+```
+Export PDF Dialog:
+┌─────────────────────────────────────┐
+│ 📄 Exporting PDF                    │
+├─────────────────────────────────────┤
+│ This may take a few seconds for    │
+│ large templates. Please wait...   │
+├─────────────────────────────────────┤
+│ ┌─────────────────────────────────┐ │
+│ │███████████████████████░ 90%    │ │
+│ └─────────────────────────────────┘ │
+├─────────────────────────────────────┤
+│ [Cancel Export]                     │
+└─────────────────────────────────────┘
+```
+
+### Advanced Dialog Features
+
+#### Progress Dialogs
+```typescript
+interface ProgressDialog {
+  title: string;
+  message: string;
+  progress: number;      // 0-100
+  showProgressBar: boolean;
+  canCancel: boolean;
+  estimatedTime?: number;
+  currentStep?: string;
+  totalSteps?: number;
+}
+```
+
+#### Multi-Step Confirmations
+```
+Import Template Dialog:
+Step 1: File Selection
+┌─────────────────────────────────────┐
+│ 📁 Select Template File             │
+├─────────────────────────────────────┤
+│ Choose a JSON template file to     │
+│ import:                           │
+├─────────────────────────────────────┤
+│ [Select File...]                   │
+├─────────────────────────────────────┤
+│ [Cancel]                  [Next]   │
+└─────────────────────────────────────┘
+
+Step 2: Preview & Confirm
+┌─────────────────────────────────────┐
+│ 👁️ Preview Import                   │
+├─────────────────────────────────────┤
+│ Template: "Invoice Template"       │
+│ Elements: 12                       │
+│ Last Modified: 2 days ago          │
+├─────────────────────────────────────┤
+│ [Back]                    [Import] │
+└─────────────────────────────────────┘
+```
+
+### Dialog Management
+
+#### Dialog Queue System
+- **Priority Levels**: Critical, High, Normal, Low
+- **Modal vs Non-Modal**: Blocking vs non-blocking dialogs
+- **Queue Management**: Handle multiple pending dialogs
+- **State Persistence**: Remember user preferences
+
+#### Accessibility Features
+- **Keyboard Navigation**: Tab order, Enter/Escape handling
+- **Screen Reader Support**: ARIA labels and live regions
+- **Focus Management**: Proper focus restoration
+- **High Contrast**: Support for accessibility themes
 
 ## Performance Optimizations
 

@@ -1,0 +1,71 @@
+# Cursor Project Rules for pdfMake-template-builder
+
+project:
+  name: pdfMake Template Builder
+  tech_stack:
+    - nextjs@15 (App Router)
+    - typescript (strict)
+    - bun
+    - tailwindcss@4
+    - shadcn/ui (on top of Radix primitives)
+  run_commands:
+    dev: bun run dev
+    build: bun run build
+    start: bun run start
+    lint: bun run lint
+
+code_conventions:
+  - Use TypeScript everywhere. Enable and keep strict mode.
+  - Use path alias `@/*` for imports.
+  - Place UI primitives in `src/components/ui/` and composites in `src/components/`.
+  - Keep utilities in `src/lib/`.
+  - Prefer shadcn/ui components; import Radix directly only if a shadcn wrapper does not exist.
+  - Do not introduce a backend; this is a client-side app.
+  - Preserve existing indentation and formatting; do not reformat unrelated code.
+
+ui_guidelines:
+  - Tailwind v4 utility classes; avoid inline styles.
+  - Use `class-variance-authority` for component variants.
+  - Maintain accessibility semantics from Radix/shadcn.
+
+file_structure:
+  src:
+    app: Next.js routes/layouts
+    components: app-level components
+    components/ui: shadcn-styled primitives
+    lib: shared utilities
+    services: business logic
+    types: shared types
+
+dependencies:
+  preferred:
+    - shadcn/ui via `bunx shadcn@latest`
+    - Radix primitives only when needed
+  avoid:
+    - heavy UI frameworks that conflict with Tailwind/shadcn
+
+testing:
+  - Keep components small and testable. Prefer React Testing Library for UI and Jest for units.
+
+pull_requests:
+  - Keep edits focused; avoid mixing refactors with features.
+  - Update docs when adding new components or patterns.
+  - Update `docs/plan/milestones.md` statuses with each relevant feature change.
+
+documentation:
+  - Document UI decisions in `docs/ui-components.md`.
+  - Update README with new dev commands or setup steps.
+
+safety:
+  - Do not commit secrets.
+  - Do not add tracking/telemetry without explicit approval.
+  - Avoid SSR hydration mismatches by following patterns below.
+
+hydration_safety:
+  - Prefer client-only rendering for stateful/interactive Radix primitives (Tabs, Dialog, Popover) under App Router when mismatches occur. Use Next.js `dynamic(..., { ssr: false })` at the route boundary when needed.
+  - Do not render non-deterministic values during SSR (e.g., `Date.now()`, `Math.random()`, `new Date()` without a serialized snapshot).
+  - Guard all browser-only code with `typeof window !== 'undefined'` inside effects, not during render. Prefer `useEffect`/`useLayoutEffect` for DOM access.
+  - If third-party extensions (e.g., Dark Reader) mutate inline styles before hydration, add `suppressHydrationWarning` and `data-darkreader-ignore` on the smallest stable element (e.g., `TabsList`).
+  - For icons or elements with extension-driven inline attributes, add `data-darkreader-ignore` and `suppressHydrationWarning` to the element.
+  - Keep UI state deterministic from SSR to CSR; initialize client state from props where possible.
+  - Avoid conditional markup branches based on `typeof window` during render. Split components if necessary.
