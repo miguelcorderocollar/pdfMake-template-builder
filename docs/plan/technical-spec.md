@@ -60,17 +60,23 @@ User edits content/styles → AppState.docDefinition updates → Debounced pdfMa
 ```
 src/components/
 ├── TemplateBuilder/
-│   ├── ContentList.tsx     # Ordered flow list of content items
+│   ├── ContentList.tsx     # Ordered flow list of content items (moved to nodes/)
 │   ├── StylesPanel.tsx     # Styles editor/applicator
 │   ├── PropertiesPanel.tsx # Inline editor for selected item
 │   └── Toolbar.tsx         # Save/export/preview, Clear Template
+
+src/components/nodes/
+├── ContentList.tsx
+├── ContentListItem.tsx
+├── ParagraphItem.tsx
+└── TextNodeItem.tsx
 ```
 
 ### 2. Element System (Phase 0 subset)
 ```
-src/components/elements/
-├── FlowStringItem.tsx      # Plain string paragraph
-└── FlowTextNodeItem.tsx    # { text, style? }
+src/components/nodes/
+├── ParagraphItem.tsx       # Plain string paragraph
+└── TextNodeItem.tsx        # { text, style? } with style selector/editor
 ```
 
 ### 3. Template Management

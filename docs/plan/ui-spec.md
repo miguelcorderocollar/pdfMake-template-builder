@@ -27,7 +27,8 @@ To better match how pdfMake actually works, the MVP will avoid freeform, absolut
 
 ### Styles Panel (Phase 0)
 - List styles from `docDefinition.styles` (e.g., `header`, `subheader`, `quote`, `small`).
-- Edit style properties relevant to Phase 0: `fontSize`, `bold`, `italics`.
+- Create and Edit style definitions in a shadcn-styled modal dialog (Radix Dialog) with fields mapping to pdfMake style options (e.g., `fontSize`, `bold`, `italics`, `alignment`, `color`, `background`, `decoration`).
+- Edits operate on `docDefinition.styles` via the app context reducer (not on Canvas notes).
 - Apply selected style(s) to the currently selected content item.
 
 ### Destructive Actions
@@ -42,9 +43,10 @@ To better match how pdfMake actually works, the MVP will avoid freeform, absolut
 - Debounced updates on content/style changes.
 
 ### Navigation and Layout (Phase 0)
-- Sidebar tabs simplified to: **Content**, **Styles**, **Templates** (Templates shows only the default for now).
-- Canvas is replaced by the **Content List** for Phase 0. No drag-resize handles.
-- Properties panel shows context-aware editor for selected content item (text + styles).
+- Sidebar tabs: **Elements**, **Styles**, **Templates**. Elements adds Paragraph/Text nodes.
+- Sidebar is modularized under `src/components/sidebar/` with panels: `ElementsPanel`, `StylesPanel`, `TemplatesPanel`.
+- Canvas renders the document via modular nodes: `ContentList`, `ContentListItem`, `ParagraphItem`, `TextNodeItem`.
+- Properties are edited inline in nodes; no absolute positioning.
 
 ### Keyboard Shortcuts (Phase 0 additions)
 - Enter: Finish inline edit

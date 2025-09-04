@@ -22,6 +22,8 @@ code_conventions:
   - Prefer shadcn/ui components; import Radix directly only if a shadcn wrapper does not exist.
   - Do not introduce a backend; this is a client-side app.
   - Preserve existing indentation and formatting; do not reformat unrelated code.
+  - Favor modularity: split large files into focused components (e.g., `src/components/layout/Canvas.tsx` → `src/components/nodes/{ContentList,ContentListItem,ParagraphItem,TextNodeItem}.tsx`). Keep components small and testable.
+  - Sidebar is modular: `src/components/sidebar/{Sidebar.tsx,panels/{ElementsPanel,StylesPanel,TemplatesPanel}.tsx}`. Use shadcn-styled Dialogs for editors (e.g., Style Editor).
 
 ui_guidelines:
   - Tailwind v4 utility classes; avoid inline styles.

@@ -27,9 +27,26 @@ export interface TemplateElement {
 }
 
 // PDFMake document definition (simplified)
+export type PdfStyle = {
+  font?: string;
+  fontSize?: number;
+  fontFeatures?: string[];
+  lineHeight?: number;
+  bold?: boolean;
+  italics?: boolean;
+  alignment?: 'left' | 'center' | 'right' | 'justify';
+  characterSpacing?: number;
+  color?: string;
+  background?: string;
+  markerColor?: string;
+  decoration?: 'underline' | 'lineThrough' | 'overline' | Array<'underline' | 'lineThrough' | 'overline'>;
+  decorationStyle?: 'dashed' | 'dotted' | 'double' | 'wavy';
+  decorationColor?: string;
+};
+
 export interface DocDefinition {
   content: Array<string | { text: string; style?: string | string[] }>;
-  styles?: Record<string, { fontSize?: number; bold?: boolean; italics?: boolean }>;
+  styles?: Record<string, PdfStyle>;
   pageSize?: string | { width: number; height: number };
   pageOrientation?: 'portrait' | 'landscape';
   pageMargins?: number[];
@@ -66,8 +83,8 @@ export type AppAction =
       | { type: 'MOVE_ITEM'; payload: { from: number; to: number } }
       | { type: 'DELETE_ITEM'; payload: { index: number } } }
   | { type: 'STYLES_OP'; payload:
-      | { type: 'ADD_STYLE'; payload: { name: string; def: { fontSize?: number; bold?: boolean; italics?: boolean } } }
-      | { type: 'UPDATE_STYLE'; payload: { name: string; def: Partial<{ fontSize?: number; bold?: boolean; italics?: boolean }> } }
+      | { type: 'ADD_STYLE'; payload: { name: string; def: PdfStyle } }
+      | { type: 'UPDATE_STYLE'; payload: { name: string; def: Partial<PdfStyle> } }
       | { type: 'RENAME_STYLE'; payload: { from: string; to: string } }
       | { type: 'DELETE_STYLE'; payload: { name: string } } }
   | { type: 'SET_SELECTED_INDEX'; payload: number | null }
