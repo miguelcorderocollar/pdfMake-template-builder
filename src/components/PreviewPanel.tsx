@@ -8,7 +8,7 @@ import { getPDFDataUrl } from "@/services/pdf-service";
 import { DocDefinition } from "@/types";
 
 interface PreviewPanelProps {
-  docDefinition: DocDefinition;
+  docDefinition: DocDefinition | null;
   isOpen: boolean;
   onClose: () => void;
 }

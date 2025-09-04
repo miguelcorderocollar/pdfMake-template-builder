@@ -53,7 +53,18 @@ function StyleEditor({ initialName = "", initialValue, onSubmit, submitLabel, tr
           </div>
           <div className="grid gap-1">
             <label className="text-sm">Alignment</label>
-            <select className="border rounded px-2 py-1" value={def.alignment ?? ''} onChange={(e) => setDef({ ...def, alignment: (e.target.value || undefined) as any })}>
+            <select
+              className="border rounded px-2 py-1"
+              value={def.alignment ?? ''}
+              onChange={(e) =>
+                setDef({
+                  ...def,
+                  alignment: (e.target.value
+                    ? (e.target.value as PdfStyle['alignment'])
+                    : undefined),
+                })
+              }
+            >
               <option value="">Default</option>
               <option value="left">Left</option>
               <option value="center">Center</option>
@@ -71,8 +82,18 @@ function StyleEditor({ initialName = "", initialValue, onSubmit, submitLabel, tr
           </div>
           <div className="grid gap-1">
             <label className="text-sm">Decoration</label>
-            <select className="border rounded px-2 py-1" value={Array.isArray(def.decoration) ? def.decoration[0] : (def.decoration ?? '') as any}
-              onChange={(e) => setDef({ ...def, decoration: (e.target.value || undefined) as any })}>
+            <select
+              className="border rounded px-2 py-1"
+              value={(Array.isArray(def.decoration) ? def.decoration[0] : def.decoration) ?? ''}
+              onChange={(e) =>
+                setDef({
+                  ...def,
+                  decoration: (e.target.value
+                    ? (e.target.value as Extract<PdfStyle['decoration'], string>)
+                    : undefined),
+                })
+              }
+            >
               <option value="">None</option>
               <option value="underline">Underline</option>
               <option value="lineThrough">Line Through</option>

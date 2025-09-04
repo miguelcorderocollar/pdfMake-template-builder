@@ -6,7 +6,7 @@ import { ContentList } from "@/components/nodes/ContentList";
 import { useApp } from "@/lib/app-context";
 
 export function Canvas() {
-  const { state } = useApp();
+  useApp();
 
   const onDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();

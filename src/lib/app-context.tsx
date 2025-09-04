@@ -29,7 +29,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       if (!state.currentTemplate) return state;
       const dd = state.currentTemplate.docDefinition;
       const content = Array.isArray(dd.content) ? [...dd.content] : [];
-      const op = action.payload as any;
+      const op = action.payload;
       switch (op.type) {
         case 'ADD_STRING': {
           const idx = op.payload.index ?? content.length;
@@ -49,7 +49,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         case 'UPDATE_TEXT_NODE': {
           const item = content[op.payload.index];
-          if (item && typeof item === 'object' && 'text' in (item as any)) {
+          if (item && typeof item === 'object' && 'text' in (item as { text: string })) {
             const next = { ...(item as { text: string; style?: string | string[] }) };
             if (op.payload.text !== undefined) next.text = op.payload.text;
             if (op.payload.style !== undefined) next.style = op.payload.style;
@@ -77,7 +77,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       if (!state.currentTemplate) return state;
       const dd = state.currentTemplate.docDefinition;
       const styles = { ...(dd.styles ?? {}) } as DocDefinition['styles'];
-      const op = action.payload as any;
+      const op = action.payload;
       switch (op.type) {
         case 'ADD_STYLE':
           styles![op.payload.name] = op.payload.def;

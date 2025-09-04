@@ -47,7 +47,7 @@ export function TemplateBuilder() {
     dispatch({ type: 'SET_PREVIEW_MODE', payload: false });
   };
 
-  const docDefinition = state.currentTemplate?.docDefinition as any;
+  const docDefinition = state.currentTemplate?.docDefinition ?? null;
 
   return (
     <div className="h-screen flex flex-col bg-background">
