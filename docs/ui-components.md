@@ -58,3 +58,13 @@ bun run lint    # lint
 ## Notes
 - If `bunx shadcn@latest add ...` fails due to network, copy components from `ui.shadcn.com` docs or our local `src/components/ui` patterns.
 - Keep components minimal and composable; avoid app-specific logic inside UI primitives.
+
+## Image node editor
+
+The Image node supports three source modes selectable from a dropdown:
+
+- file: uploads a local image and stores it as a data URL.
+- url: accepts either an `https://` URL (which is fetched and converted to a data URL in-browser, subject to CORS) or a `data:` URL directly.
+- base64: paste a full data URL only (e.g., `data:image/jpeg;base64,/9j...`). We intentionally require the full prefix to match pdfMake examples and avoid MIME ambiguity.
+
+Images should be provided as `data:` URLs for reliability. The default example uses a 1x1 PNG with the `data:image/png;base64,...` prefix.

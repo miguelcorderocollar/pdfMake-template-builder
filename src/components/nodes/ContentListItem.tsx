@@ -86,14 +86,14 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 						onClick={() => index > 0 && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index - 1 } } })}
 						title="Move up"
 					>
-						<ArrowUp className="h-3 w-3" />
+						<ArrowUp className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
 					</button>
 					<button
 						className="h-7 w-7 inline-flex items-center justify-center rounded border"
 						onClick={() => index < (state.currentTemplate!.docDefinition.content.length - 1) && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index + 1 } } })}
 						title="Move down"
 					>
-						<ArrowDown className="h-3 w-3" />
+						<ArrowDown className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
 					</button>
 					<button
 						className="h-7 w-7 inline-flex items-center justify-center rounded border"
@@ -111,7 +111,7 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 						}}
 						title="Delete"
 					>
-						<Trash2 className="h-3 w-3" />
+						<Trash2 className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
 					</button>
 				</div>
 			</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useReducer, ReactNode, useEffect, useRef } from "react";
 import { AppState, AppAction, DocDefinition } from "@/types";
 import { stylesSimpleDoc } from "@/services/example-templates";
 
@@ -210,6 +210,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const lastContentRef = useRef<string | null>(null);
 
   // Load from localStorage if present, else keep default
   useEffect(() => {
@@ -231,6 +232,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         window.localStorage.setItem('docDefinition', JSON.stringify(state.currentTemplate.docDefinition));
       } catch {}
     }
+  }, [state.currentTemplate]);
+
+  // Debug: Log docDefinition whenever content changes
+  useEffect(() => {
+    try {
+      if (!state.currentTemplate) return;
+      const content = state.currentTemplate.docDefinition?.content ?? [];
+      const serialized = JSON.stringify(content);
+      if (lastContentRef.current !== serialized) {
+        lastContentRef.current = serialized;
+        // eslint-disable-next-line no-console
+        console.log('[pdfMake] docDefinition (content updated):', state.currentTemplate.docDefinition);
+      }
+    } catch {}
   }, [state.currentTemplate]);
 
   return (

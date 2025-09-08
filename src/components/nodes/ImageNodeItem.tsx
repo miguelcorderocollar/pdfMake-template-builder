@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ImageNodeData = {
   image: string;
@@ -18,16 +18,62 @@ export function ImageNodeItem({
   onChange: (next: Partial<ImageNodeData>) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<'file' | 'url' | 'base64'>("file");
   const [urlDraft, setUrlDraft] = useState("");
   const [fitW, setFitW] = useState<string>(data.fit ? String(data.fit[0]) : "");
   const [fitH, setFitH] = useState<string>(data.fit ? String(data.fit[1]) : "");
   const [urlBusy, setUrlBusy] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [b64Draft, setB64Draft] = useState<string>("");
+  const [b64Error, setB64Error] = useState<string | null>(null);
+  const userPickedModeRef = useRef(false);
+
+  // Helpers
+  const isValidHttpUrl = (value: string) => /^https?:\/\//i.test(value);
+  const isValidDataUrlBase64 = (value: string) => /^data:[^;]+;base64,[A-Za-z0-9+/=\s]+$/i.test(value);
 
   useEffect(() => {
     setFitW(data.fit ? String(data.fit[0]) : "");
     setFitH(data.fit ? String(data.fit[1]) : "");
   }, [data.fit]);
+
+  // Auto-detect mode based on current image value unless the user explicitly chose a mode
+  useEffect(() => {
+    if (userPickedModeRef.current) return;
+    const val = String((data as { image?: string }).image || "");
+    if (val.startsWith('data:')) {
+      setMode('base64');
+    } else if (/^https?:\/\//i.test(val)) {
+      setMode('url');
+    } else if (val) {
+      // Fallback: unknown string; keep current selection
+    }
+  }, [data.image]);
+
+  // Validate drafts live and provide immediate feedback
+  useEffect(() => {
+    if (mode === 'url') {
+      if (!urlDraft) {
+        setUrlError(null);
+      } else if (isValidHttpUrl(urlDraft) || isValidDataUrlBase64(urlDraft)) {
+        setUrlError(null);
+      } else {
+        setUrlError('Enter a valid http(s) URL or a full data URL');
+      }
+    }
+  }, [mode, urlDraft]);
+
+  useEffect(() => {
+    if (mode === 'base64') {
+      if (!b64Draft) {
+        setB64Error(null);
+      } else if (isValidDataUrlBase64(b64Draft)) {
+        setB64Error(null);
+      } else {
+        setB64Error('Please paste a full data URL like data:image/jpeg;base64,/9j...');
+      }
+    }
+  }, [mode, b64Draft]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,38 +117,87 @@ export function ImageNodeItem({
     }
   };
 
+  const applyBase64 = () => {
+    setB64Error(null);
+    const trimmed = b64Draft.trim();
+    if (!trimmed) return;
+    if (!isValidDataUrlBase64(trimmed)) {
+      setB64Error('Please paste a full data URL like data:image/jpeg;base64,/9j...');
+      return;
+    }
+    onChange({ image: trimmed });
+    setB64Draft("");
+  };
+
   return (
     <div className="text-sm">
       <div className="text-xs text-muted-foreground mb-2">Image</div>
 
       <div className="grid gap-2">
-        <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="h-7 text-xs"
-            onChange={handleFileChange}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="url"
-            className="h-7 flex-1 rounded border bg-background px-2 text-xs"
-            placeholder="https://example.com/image.png"
-            value={urlDraft}
-            onChange={(e) => setUrlDraft(e.target.value)}
-          />
-          <button
-            className="h-7 px-2 rounded border text-xs"
-            onClick={applyUrl}
-            disabled={urlBusy}
+        <label className="flex items-center gap-2">
+          <span className="w-14">source</span>
+          <select
+            className="h-7 rounded border bg-background px-2 text-xs"
+            value={mode}
+            onChange={(e) => {
+              userPickedModeRef.current = true;
+              setMode(e.target.value as typeof mode);
+            }}
           >
-            {urlBusy ? 'Converting…' : 'Use URL'}
-          </button>
-        </div>
-        {urlError ? <div className="text-xs text-destructive">{urlError}</div> : null}
+            <option value="file">file</option>
+            <option value="url">url</option>
+            <option value="base64">base64</option>
+          </select>
+        </label>
+
+        {mode === 'file' ? (
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="h-7 text-xs"
+              onChange={handleFileChange}
+            />
+          </div>
+        ) : null}
+
+        {mode === 'url' ? (
+          <>
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                className="h-7 flex-1 rounded border bg-background px-2 text-xs"
+                placeholder="https://example.com/image.png or data:image/png;base64,..."
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+              />
+              <button
+                className="h-7 px-2 rounded border text-xs"
+                onClick={applyUrl}
+                disabled={urlBusy}
+              >
+                {urlBusy ? 'Converting…' : 'Use URL'}
+              </button>
+            </div>
+            {urlError ? <div className="text-xs text-destructive">{urlError}</div> : null}
+          </>
+        ) : null}
+
+        {mode === 'base64' ? (
+          <>
+            <textarea
+              className="min-h-20 rounded border bg-background p-2 text-xs"
+              placeholder="Example: data:image/jpeg;base64,/9j/4RC5RXhpZgAATU0AKgA..."
+              value={b64Draft}
+              onChange={(e) => setB64Draft(e.target.value)}
+            />
+            <div className="flex items-center gap-2">
+              <button className="h-7 px-2 rounded border text-xs" onClick={applyBase64}>Use Data URL</button>
+              {b64Error ? <div className="text-xs text-destructive">{b64Error}</div> : null}
+            </div>
+          </>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-2">
           <label className="flex items-center gap-2">
@@ -171,13 +266,21 @@ export function ImageNodeItem({
           />
         </label>
 
-        {data.image ? (
-          <div className="mt-2">
-            <div className="text-xs text-muted-foreground mb-1">preview</div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={data.image} alt="image preview" className="max-h-32 rounded border" />
-          </div>
-        ) : null}
+        {(() => {
+          const livePreview = (() => {
+            if (mode === 'base64' && isValidDataUrlBase64(b64Draft)) return b64Draft;
+            if (mode === 'url' && (isValidHttpUrl(urlDraft) || isValidDataUrlBase64(urlDraft))) return urlDraft;
+            return null;
+          })();
+          const src = livePreview || data.image || '';
+          return src ? (
+            <div className="mt-2">
+              <div className="text-xs text-muted-foreground mb-1">preview</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="image preview" className="max-h-32 rounded border" />
+            </div>
+          ) : null;
+        })()}
       </div>
     </div>
   );

@@ -94,6 +94,7 @@ export async function generatePDF(docDefinition: DocDefinition): Promise<Blob> {
     try {
       // Clone docDefinition to avoid in-place mutations by pdfmake
       const cloned: DocDefinition = JSON.parse(JSON.stringify(docDefinition));
+      // No normalization; require full data URLs for images to avoid ambiguity and follow examples
       const doc = pdfMake.createPdf(cloned);
       doc.getBlob((blob: Blob) => {
         resolve(blob);
@@ -139,6 +140,7 @@ export async function getPDFDataUrl(docDefinition: DocDefinition): Promise<strin
 
     try {
       const cloned: DocDefinition = JSON.parse(JSON.stringify(docDefinition));
+      // No normalization; require full data URLs for images
       const doc = pdfMake.createPdf(cloned);
       doc.getDataUrl((dataUrl: string) => {
         resolve(dataUrl);
