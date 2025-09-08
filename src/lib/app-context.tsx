@@ -43,13 +43,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         case 'ADD_IMAGE_NODE': {
           const idx = op.payload.index ?? content.length;
-          const { index, ...node } = op.payload as { index?: number } & { [key: string]: unknown };
+          const { index: _index, ...node } = op.payload;
           content.splice(idx, 0, node);
           break;
         }
         case 'ADD_LIST_NODE': {
           const idx = op.payload.index ?? content.length;
-          const { index, ...node } = op.payload as { index?: number } & { [key: string]: unknown };
+          const { index: _index, ...node } = op.payload;
+          content.splice(idx, 0, node);
+          break;
+        }
+        case 'ADD_TABLE_NODE': {
+          const idx = op.payload.index ?? content.length;
+          const { index: _index, ...node } = op.payload;
           content.splice(idx, 0, node);
           break;
         }
@@ -77,7 +83,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
             for (const key of Object.keys(rest)) {
               (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
             }
-            content[op.payload.index] = next;
+            content[op.payload.index] = next as unknown as import("@/types").DocContentItem;
           }
           break;
         }
@@ -89,7 +95,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
             for (const key of Object.keys(rest)) {
               (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
             }
-1            // If switching kinds, prune the opposite key to prevent ambiguity in pdfmake
+            // If switching kinds, prune the opposite key to prevent ambiguity in pdfmake
             if (Object.prototype.hasOwnProperty.call(rest, 'ol')) {
               delete (next as Record<string, unknown>)['ul'];
               if (Array.isArray((next as Record<string, unknown>)['ol'])) {
@@ -102,7 +108,31 @@ function appReducer(state: AppState, action: AppAction): AppState {
                 (next as Record<string, unknown>)['ul'] = ((next as Record<string, unknown>)['ul'] as unknown[]).map(String);
               }
             }
-            content[op.payload.index] = next;
+            content[op.payload.index] = next as unknown as import("@/types").DocContentItem;
+          }
+          break;
+        }
+        case 'UPDATE_TABLE_NODE': {
+          const item = content[op.payload.index];
+          if (item && typeof item === 'object' && 'table' in (item as Record<string, unknown>)) {
+            const next = { ...(item as Record<string, unknown>) };
+            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            // Merge table sub-object carefully
+            if ('table' in rest && typeof (rest as Record<string, unknown>).table === 'object') {
+              const prevTable = (next.table as Record<string, unknown>) || {};
+              const incoming = (rest.table as Record<string, unknown>) || {};
+              const merged = { ...prevTable, ...incoming } as { body?: unknown[][] } & Record<string, unknown>;
+              if (Array.isArray(merged.body)) {
+                merged.body = merged.body.map((row) => Array.isArray(row) ? row.map((cell) => typeof cell === 'string' ? cell : String(cell ?? '')) : []);
+              }
+              (next as Record<string, unknown>).table = merged as unknown;
+              delete (rest as Record<string, unknown>).table;
+            }
+            // Apply remaining root-level props (layout, style, etc.)
+            for (const key of Object.keys(rest)) {
+              (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
+            }
+            content[op.payload.index] = next as unknown as import("@/types").DocContentItem;
           }
           break;
         }

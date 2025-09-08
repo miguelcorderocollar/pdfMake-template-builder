@@ -6,6 +6,7 @@ import { ParagraphItem } from "@/components/nodes/ParagraphItem";
 import { TextNodeItem } from "@/components/nodes/TextNodeItem";
 import { ImageNodeItem } from "@/components/nodes/ImageNodeItem";
 import { ListNodeItem } from "@/components/nodes/ListNodeItem";
+import { TableNodeItem } from "@/components/nodes/TableNodeItem";
 import type { DocContentItem } from "@/types";
 
 function isImageNode(item: DocContentItem): item is { image: string; width?: number; height?: number; fit?: [number, number]; opacity?: number } {
@@ -17,7 +18,11 @@ function isTextNode(item: DocContentItem): item is { text: string; style?: strin
 }
 
 function isListNode(item: DocContentItem): item is ({ ul: Array<string>; type?: 'square' | 'circle' | 'none'; color?: string; markerColor?: string } | { ol: Array<string>; type?: 'lower-alpha' | 'upper-alpha' | 'upper-roman' | 'lower-roman' | 'none'; start?: number; reversed?: boolean; separator?: string | [string, string]; color?: string; markerColor?: string }) {
-  return typeof item === 'object' && item !== null && (('ul' in (item as Record<string, unknown>)) || ('ol' in (item as Record<string, unknown>)));
+  return typeof item === 'object' && item !== null && (( 'ul' in (item as Record<string, unknown>) ) || ( 'ol' in (item as Record<string, unknown>) ));
+}
+
+function isTableNode(item: DocContentItem): item is import("@/types").TableNode {
+  return typeof item === 'object' && item !== null && ('table' in (item as Record<string, unknown>));
 }
 
 export function ContentListItem({ index, item }: { index: number; item: DocContentItem }) {
@@ -46,6 +51,13 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 								data={item as unknown as import("@/types").ListNode}
 								onChange={(next) =>
 									dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_LIST_NODE', payload: { index, ...(next as Partial<import("@/types").UnorderedListNode> | Partial<import("@/types").OrderedListNode>) } } })
+								}
+							/>
+						) : isTableNode(item) ? (
+							<TableNodeItem
+								data={item as unknown as import("@/types").TableNode}
+								onChange={(next) =>
+									dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TABLE_NODE', payload: { index, ...(next as Partial<import("@/types").TableNode>) } } })
 								}
 							/>
 						) : (

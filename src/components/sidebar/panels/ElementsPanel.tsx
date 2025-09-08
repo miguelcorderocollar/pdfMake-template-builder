@@ -37,6 +37,13 @@ export function ElementsPanel() {
         >
           Add List
         </Button>
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_TABLE_NODE', payload: { table: { body: [['A1','B1','C1'], ['A2','B2','C2']] } } } })}
+        >
+          Add Table
+        </Button>
       </div>
     </div>
   );

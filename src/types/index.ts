@@ -74,7 +74,18 @@ export type OrderedListNode = {
 
 export type ListNode = UnorderedListNode | OrderedListNode;
 
-export type DocContentItem = string | TextNode | ImageNode | ListNode;
+export type TableNode = {
+  table: {
+    body: Array<Array<string>>;
+    headerRows?: number;
+    widths?: Array<number | '*' | 'auto'>;
+    heights?: number | Array<number>;
+  };
+  layout?: 'noBorders' | 'headerLineOnly' | 'lightHorizontalLines';
+  style?: string | string[];
+};
+
+export type DocContentItem = string | TextNode | ImageNode | ListNode | TableNode;
 
 export interface DocDefinition {
   content: Array<DocContentItem>;
@@ -112,10 +123,12 @@ export type AppAction =
       | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string; style?: string | string[] } }
       | { type: 'ADD_IMAGE_NODE'; payload: { index?: number } & ImageNode }
       | { type: 'ADD_LIST_NODE'; payload: { index?: number } & ListNode }
+      | { type: 'ADD_TABLE_NODE'; payload: { index?: number } & TableNode }
       | { type: 'UPDATE_STRING'; payload: { index: number; value: string } }
       | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[] } }
       | { type: 'UPDATE_IMAGE_NODE'; payload: { index: number } & Partial<ImageNode> }
       | { type: 'UPDATE_LIST_NODE'; payload: { index: number } & (Partial<UnorderedListNode> | Partial<OrderedListNode>) }
+      | { type: 'UPDATE_TABLE_NODE'; payload: { index: number } & Partial<TableNode> }
       | { type: 'MOVE_ITEM'; payload: { from: number; to: number } }
       | { type: 'DELETE_ITEM'; payload: { index: number } } }
   | { type: 'STYLES_OP'; payload:
