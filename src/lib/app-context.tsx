@@ -41,6 +41,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
           content.splice(idx, 0, { text: op.payload.text, style: op.payload.style });
           break;
         }
+        case 'ADD_IMAGE_NODE': {
+          const idx = op.payload.index ?? content.length;
+          const { index, ...node } = op.payload as { index?: number } & { [key: string]: unknown };
+          content.splice(idx, 0, node);
+          break;
+        }
+        case 'ADD_LIST_NODE': {
+          const idx = op.payload.index ?? content.length;
+          const { index, ...node } = op.payload as { index?: number } & { [key: string]: unknown };
+          content.splice(idx, 0, node);
+          break;
+        }
         case 'UPDATE_STRING': {
           if (typeof content[op.payload.index] === 'string') {
             content[op.payload.index] = op.payload.value;
@@ -53,6 +65,43 @@ function appReducer(state: AppState, action: AppAction): AppState {
             const next = { ...(item as { text: string; style?: string | string[] }) };
             if (op.payload.text !== undefined) next.text = op.payload.text;
             if (op.payload.style !== undefined) next.style = op.payload.style;
+            content[op.payload.index] = next;
+          }
+          break;
+        }
+        case 'UPDATE_IMAGE_NODE': {
+          const item = content[op.payload.index];
+          if (item && typeof item === 'object' && 'image' in (item as { image: string })) {
+            const next = { ...(item as Record<string, unknown>) };
+            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            for (const key of Object.keys(rest)) {
+              (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
+            }
+            content[op.payload.index] = next;
+          }
+          break;
+        }
+        case 'UPDATE_LIST_NODE': {
+          const item = content[op.payload.index];
+          if (item && typeof item === 'object' && ('ul' in (item as Record<string, unknown>) || 'ol' in (item as Record<string, unknown>))) {
+            const next = { ...(item as Record<string, unknown>) };
+            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            for (const key of Object.keys(rest)) {
+              (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
+            }
+1            // If switching kinds, prune the opposite key to prevent ambiguity in pdfmake
+            if (Object.prototype.hasOwnProperty.call(rest, 'ol')) {
+              delete (next as Record<string, unknown>)['ul'];
+              if (Array.isArray((next as Record<string, unknown>)['ol'])) {
+                (next as Record<string, unknown>)['ol'] = ((next as Record<string, unknown>)['ol'] as unknown[]).map(String);
+              }
+            }
+            if (Object.prototype.hasOwnProperty.call(rest, 'ul')) {
+              delete (next as Record<string, unknown>)['ol'];
+              if (Array.isArray((next as Record<string, unknown>)['ul'])) {
+                (next as Record<string, unknown>)['ul'] = ((next as Record<string, unknown>)['ul'] as unknown[]).map(String);
+              }
+            }
             content[op.payload.index] = next;
           }
           break;

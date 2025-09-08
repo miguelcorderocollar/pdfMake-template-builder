@@ -23,6 +23,20 @@ export function ElementsPanel() {
         >
           Add Text Node
         </Button>
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_IMAGE_NODE', payload: { image: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', opacity: 1 } } })}
+        >
+          Add Image
+        </Button>
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_LIST_NODE', payload: { ul: ['item 1', 'item 2', 'item 3'] } } })}
+        >
+          Add List
+        </Button>
       </div>
     </div>
   );

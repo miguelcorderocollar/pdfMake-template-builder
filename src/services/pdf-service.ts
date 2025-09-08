@@ -92,7 +92,9 @@ export async function generatePDF(docDefinition: DocDefinition): Promise<Blob> {
     }
 
     try {
-      const doc = pdfMake.createPdf(docDefinition);
+      // Clone docDefinition to avoid in-place mutations by pdfmake
+      const cloned: DocDefinition = JSON.parse(JSON.stringify(docDefinition));
+      const doc = pdfMake.createPdf(cloned);
       doc.getBlob((blob: Blob) => {
         resolve(blob);
       });
@@ -115,7 +117,8 @@ export async function downloadPDF(docDefinition: DocDefinition, filename: string
   }
 
   try {
-    const doc = pdfMake.createPdf(docDefinition);
+    const cloned: DocDefinition = JSON.parse(JSON.stringify(docDefinition));
+    const doc = pdfMake.createPdf(cloned);
     doc.download(filename);
   } catch (error) {
     console.error('Error creating PDF:', error);
@@ -135,7 +138,8 @@ export async function getPDFDataUrl(docDefinition: DocDefinition): Promise<strin
     }
 
     try {
-      const doc = pdfMake.createPdf(docDefinition);
+      const cloned: DocDefinition = JSON.parse(JSON.stringify(docDefinition));
+      const doc = pdfMake.createPdf(cloned);
       doc.getDataUrl((dataUrl: string) => {
         resolve(dataUrl);
       });

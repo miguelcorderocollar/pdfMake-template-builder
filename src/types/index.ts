@@ -44,8 +44,40 @@ export type PdfStyle = {
   decorationColor?: string;
 };
 
+export type TextNode = { text: string; style?: string | string[] };
+
+export type ImageNode = {
+  image: string; // data URL or URL
+  width?: number;
+  height?: number;
+  fit?: [number, number];
+  opacity?: number; // 0..1
+  [key: string]: unknown;
+};
+
+export type UnorderedListNode = {
+  ul: Array<string>;
+  type?: 'square' | 'circle' | 'none';
+  color?: string;
+  markerColor?: string;
+};
+
+export type OrderedListNode = {
+  ol: Array<string>;
+  type?: 'lower-alpha' | 'upper-alpha' | 'upper-roman' | 'lower-roman' | 'none';
+  start?: number;
+  reversed?: boolean;
+  separator?: string | [string, string];
+  color?: string;
+  markerColor?: string;
+};
+
+export type ListNode = UnorderedListNode | OrderedListNode;
+
+export type DocContentItem = string | TextNode | ImageNode | ListNode;
+
 export interface DocDefinition {
-  content: Array<string | { text: string; style?: string | string[] }>;
+  content: Array<DocContentItem>;
   styles?: Record<string, PdfStyle>;
   pageSize?: string | { width: number; height: number };
   pageOrientation?: 'portrait' | 'landscape';
@@ -78,8 +110,12 @@ export type AppAction =
   | { type: 'CONTENT_OP'; payload:
       | { type: 'ADD_STRING'; payload: { index?: number; value: string } }
       | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string; style?: string | string[] } }
+      | { type: 'ADD_IMAGE_NODE'; payload: { index?: number } & ImageNode }
+      | { type: 'ADD_LIST_NODE'; payload: { index?: number } & ListNode }
       | { type: 'UPDATE_STRING'; payload: { index: number; value: string } }
       | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[] } }
+      | { type: 'UPDATE_IMAGE_NODE'; payload: { index: number } & Partial<ImageNode> }
+      | { type: 'UPDATE_LIST_NODE'; payload: { index: number } & (Partial<UnorderedListNode> | Partial<OrderedListNode>) }
       | { type: 'MOVE_ITEM'; payload: { from: number; to: number } }
       | { type: 'DELETE_ITEM'; payload: { index: number } } }
   | { type: 'STYLES_OP'; payload:
