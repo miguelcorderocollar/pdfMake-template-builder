@@ -28,10 +28,48 @@ function isTableNode(item: DocContentItem): item is import("@/types").TableNode 
 export function ContentListItem({ index, item }: { index: number; item: DocContentItem }) {
 	const { state, dispatch } = useApp();
 	return (
-		<div className="group border rounded p-3 bg-background">
-			<div className="flex items-start gap-3">
+		<div className="group rounded-lg border bg-card text-card-foreground shadow-sm">
+			<div className="flex items-start gap-3 p-3 border-b bg-muted/30">
 				<div className="flex-1">
-					{typeof item === 'string' ? (
+					<div className="text-xs font-medium text-muted-foreground">Item {index + 1}</div>
+				</div>
+				<div className="flex items-center gap-1">
+					<button
+						className="h-7 w-7 inline-flex items-center justify-center rounded border bg-background"
+						onClick={() => index > 0 && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index - 1 } } })}
+						title="Move up"
+					>
+						<ArrowUp className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
+					</button>
+					<button
+						className="h-7 w-7 inline-flex items-center justify-center rounded border bg-background"
+						onClick={() => index < (state.currentTemplate!.docDefinition.content.length - 1) && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index + 1 } } })}
+						title="Move down"
+					>
+						<ArrowDown className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
+					</button>
+					<button
+						className="h-7 w-7 inline-flex items-center justify-center rounded border bg-background"
+						onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_STRING', payload: { index, value: 'New paragraph' } } })}
+						title="Insert above"
+					>
+						+
+					</button>
+					<button
+						className="h-7 w-7 inline-flex items-center justify-center rounded border bg-background text-destructive"
+						onClick={() => {
+							if (confirm('Delete this item?')) {
+								dispatch({ type: 'CONTENT_OP', payload: { type: 'DELETE_ITEM', payload: { index } } });
+							}
+						}}
+						title="Delete"
+					>
+						<Trash2 className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
+					</button>
+				</div>
+			</div>
+			<div className="p-3">
+				{typeof item === 'string' ? (
 						<ParagraphItem
 							value={item}
 							onChange={(value) =>
@@ -80,41 +118,6 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 						)
 					)}
 				</div>
-				<div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-					<button
-						className="h-7 w-7 inline-flex items-center justify-center rounded border"
-						onClick={() => index > 0 && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index - 1 } } })}
-						title="Move up"
-					>
-						<ArrowUp className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
-					</button>
-					<button
-						className="h-7 w-7 inline-flex items-center justify-center rounded border"
-						onClick={() => index < (state.currentTemplate!.docDefinition.content.length - 1) && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index + 1 } } })}
-						title="Move down"
-					>
-						<ArrowDown className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
-					</button>
-					<button
-						className="h-7 w-7 inline-flex items-center justify-center rounded border"
-						onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_STRING', payload: { index, value: 'New paragraph' } } })}
-						title="Insert above"
-					>
-						+
-					</button>
-					<button
-						className="h-7 w-7 inline-flex items-center justify-center rounded border text-destructive"
-						onClick={() => {
-							if (confirm('Delete this item?')) {
-								dispatch({ type: 'CONTENT_OP', payload: { type: 'DELETE_ITEM', payload: { index } } });
-							}
-						}}
-						title="Delete"
-					>
-						<Trash2 className="h-3 w-3" data-darkreader-ignore suppressHydrationWarning />
-					</button>
-				</div>
-			</div>
 		</div>
 	);
 }

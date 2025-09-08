@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Menu, Save, Download, Eye, Upload, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -36,11 +37,10 @@ export function Header({
 
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold">PDFMake Template Builder</h1>
-            <input
-              type="text"
+            <Input
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
-              className="px-2 py-1 text-sm border rounded bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="h-8 w-[220px]"
               placeholder="Template name"
             />
           </div>
