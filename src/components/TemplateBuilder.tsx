@@ -22,28 +22,6 @@ export function TemplateBuilder() {
     if (dd) downloadPDF(dd, filename);
   };
 
-  const handleExportJSON = () => {
-    const template = {
-      id: 'export-' + Date.now(),
-      name: 'Exported Template',
-      docDefinition: state.currentTemplate?.docDefinition,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const dataStr = JSON.stringify(template, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'template.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleClosePreview = () => {
     dispatch({ type: 'SET_PREVIEW_MODE', payload: false });
   };
@@ -57,7 +35,6 @@ export function TemplateBuilder() {
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onPreview={handlePreview}
         onExportPDF={handleExportPDF}
-        onExportJSON={handleExportJSON}
       />
 
       {/* Main Content Area */}

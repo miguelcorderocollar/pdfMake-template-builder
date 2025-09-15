@@ -55,6 +55,25 @@ bun lint -- --cache --max-warnings=0
 bun run build
 ```
 
+### UI Toolkit Setup (shadcn/ui + Radix primitives)
+
+This project uses lightweight shadcn-style primitives with Radix UI under the hood. Ensure these packages are installed when adding related components:
+
+```bash
+# Core Radix primitives we rely on
+bun add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
+
+# If using npm/pnpm/yarn
+# npm i @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
+# pnpm add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
+# yarn add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
+```
+
+Notes:
+- Our shadcn-style wrappers live under `src/components/ui/` (e.g., `dialog.tsx`, `tabs.tsx`, `tooltip.tsx`).
+- When introducing a new primitive, create a minimal wrapper in `src/components/ui/` so styling and z-index are consistent across the app.
+- After adding new UI primitives, restart the dev server to clear module caches: `bun dev`.
+
 ## 📁 Project Structure
 
 ```

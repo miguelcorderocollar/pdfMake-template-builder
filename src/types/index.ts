@@ -150,10 +150,14 @@ export interface Template {
 // Application state interface
 export interface AppState {
   currentTemplate: Template | null;
+  templates?: Template[];
   selectedIndex: number | null;
   isPreviewMode: boolean;
   isLoading: boolean;
   filename?: string;
+  theme?: Theme;
+  dirty?: boolean;
+  currentTemplateId?: string;
 }
 
 // Action types for state management
@@ -162,6 +166,7 @@ export type AppAction =
   | { type: 'SET_DOCDEFINITION'; payload: DocDefinition }
   | { type: 'UPDATE_DOC_SETTINGS'; payload: Partial<DocDefinition> }
   | { type: 'SET_FILENAME'; payload: string }
+  | { type: 'SET_TEMPLATE_NAME'; payload: string }
   | { type: 'CONTENT_OP'; payload:
       | { type: 'ADD_STRING'; payload: { index?: number; value: string } }
       | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string; style?: string | string[] } }
@@ -184,4 +189,12 @@ export type AppAction =
   | { type: 'CLEAR_TEMPLATE' }
   | { type: 'RELOAD_DEFAULT_TEMPLATE' }
   | { type: 'SET_PREVIEW_MODE'; payload: boolean }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SAVE_TEMPLATE' }
+  | { type: 'DELETE_TEMPLATE'; payload: { id: string } }
+  | { type: 'IMPORT_TEMPLATES'; payload: { templates: Template[] } }
+  | { type: 'SELECT_TEMPLATE_BY_ID'; payload: { id: string } }
+  | { type: 'SET_THEME'; payload: Theme }
+  | { type: 'SET_DIRTY'; payload: boolean };
+
+export type Theme = 'light' | 'dark';
