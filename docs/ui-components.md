@@ -1,3 +1,12 @@
+## Settings Panel
+
+Adds a new tab in the sidebar for configuring global pdfMake document settings.
+
+- Common: filename, pageSize, pageOrientation, pageMargins, background, watermark text, info.title, language
+- Advanced (collapsible): compress, version, userPassword, ownerPassword, permissions, subset, tagged, displayTitle
+
+Defaults are applied in `src/services/example-templates.ts` and filename persists via localStorage.
+
 # UI Components Strategy: shadcn/ui and Radix Primitives
 
 This project uses Tailwind CSS v4 and Next.js App Router. Our recommended approach for UI components is:

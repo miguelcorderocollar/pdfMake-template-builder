@@ -93,6 +93,47 @@ export interface DocDefinition {
   pageSize?: string | { width: number; height: number };
   pageOrientation?: 'portrait' | 'landscape';
   pageMargins?: number[];
+  background?: string | { text?: string; [key: string]: unknown } | ((currentPage: number, pageSize: { width: number; height: number }) => unknown);
+  watermark?: {
+    text?: string;
+    color?: string;
+    opacity?: number;
+    bold?: boolean;
+    italics?: boolean;
+    fontSize?: number;
+    angle?: number;
+  };
+  info?: {
+    title?: string;
+    author?: string;
+    subject?: string;
+    keywords?: string;
+    creator?: string;
+    producer?: string;
+    creationDate?: string | Date;
+    modDate?: string | Date;
+    trapped?: boolean;
+  };
+  language?: string;
+  compress?: boolean;
+  version?: '1.3' | '1.4' | '1.5' | '1.6' | '1.7' | '1.7ext3';
+  userPassword?: string;
+  ownerPassword?: string;
+  permissions?: {
+    printing?: 'lowResolution' | 'highResolution' | false;
+    modifying?: boolean;
+    copying?: boolean;
+    annotating?: boolean;
+    fillingForms?: boolean;
+    contentAccessibility?: boolean;
+    documentAssembly?: boolean;
+  };
+  subset?:
+    | 'PDF/A-1' | 'PDF/A-1a' | 'PDF/A-1b'
+    | 'PDF/A-2' | 'PDF/A-2a' | 'PDF/A-2b'
+    | 'PDF/A-3' | 'PDF/A-3a' | 'PDF/A-3b';
+  tagged?: boolean;
+  displayTitle?: boolean;
   [key: string]: unknown;
 }
 
@@ -112,12 +153,15 @@ export interface AppState {
   selectedIndex: number | null;
   isPreviewMode: boolean;
   isLoading: boolean;
+  filename?: string;
 }
 
 // Action types for state management
 export type AppAction =
   | { type: 'SET_TEMPLATE'; payload: Template }
   | { type: 'SET_DOCDEFINITION'; payload: DocDefinition }
+  | { type: 'UPDATE_DOC_SETTINGS'; payload: Partial<DocDefinition> }
+  | { type: 'SET_FILENAME'; payload: string }
   | { type: 'CONTENT_OP'; payload:
       | { type: 'ADD_STRING'; payload: { index?: number; value: string } }
       | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string; style?: string | string[] } }

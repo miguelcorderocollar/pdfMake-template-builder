@@ -15,6 +15,7 @@ const initialState: AppState = {
   selectedIndex: null,
   isPreviewMode: false,
   isLoading: false,
+  filename: 'document.pdf',
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -25,6 +26,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return state.currentTemplate
         ? { ...state, currentTemplate: { ...state.currentTemplate, docDefinition: action.payload } }
         : state;
+    case 'UPDATE_DOC_SETTINGS': {
+      if (!state.currentTemplate) return state;
+      const dd = state.currentTemplate.docDefinition;
+      return {
+        ...state,
+        currentTemplate: {
+          ...state.currentTemplate,
+          docDefinition: { ...dd, ...action.payload },
+        },
+      };
+    }
+    case 'SET_FILENAME': {
+      return { ...state, filename: action.payload };
+    }
     case 'CONTENT_OP': {
       if (!state.currentTemplate) return state;
       const dd = state.currentTemplate.docDefinition;
@@ -190,7 +205,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
     case 'RELOAD_DEFAULT_TEMPLATE': {
       if (!state.currentTemplate) return state;
-      return { ...state, currentTemplate: { ...state.currentTemplate, docDefinition: stylesSimpleDoc }, selectedIndex: null };
+      return {
+        ...state,
+        currentTemplate: { ...state.currentTemplate, docDefinition: stylesSimpleDoc },
+        selectedIndex: null,
+        filename: 'document.pdf',
+      };
     }
     case 'SET_PREVIEW_MODE':
       return { ...state, isPreviewMode: action.payload };
@@ -217,9 +237,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return;
     try {
       const saved = window.localStorage.getItem('docDefinition');
+      const savedFilename = window.localStorage.getItem('filename');
       if (saved) {
         const dd = JSON.parse(saved) as DocDefinition;
         dispatch({ type: 'SET_DOCDEFINITION', payload: dd });
+      }
+      if (savedFilename) {
+        dispatch({ type: 'SET_FILENAME', payload: savedFilename });
       }
     } catch {}
   }, []);
@@ -230,9 +254,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (state.currentTemplate) {
       try {
         window.localStorage.setItem('docDefinition', JSON.stringify(state.currentTemplate.docDefinition));
+        if (state.filename) window.localStorage.setItem('filename', state.filename);
       } catch {}
     }
-  }, [state.currentTemplate]);
+  }, [state.currentTemplate, state.filename]);
 
   // Debug: Log docDefinition whenever content changes
   useEffect(() => {

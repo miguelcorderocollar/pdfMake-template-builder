@@ -2,6 +2,12 @@ import { DocDefinition } from "@/types";
 
 // Default example based on docs/examples/styles-simple.js
 export const stylesSimpleDoc: DocDefinition = {
+  pageSize: 'A4',
+  pageOrientation: 'portrait',
+  pageMargins: [40, 60, 40, 60],
+  info: { title: 'Styles Simple Example' },
+  language: 'en-US',
+  watermark: { text: '' },
   content: [
     {
       text: 'This is a header, using header style',

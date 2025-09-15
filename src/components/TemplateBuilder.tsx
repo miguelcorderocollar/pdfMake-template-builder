@@ -18,7 +18,8 @@ export function TemplateBuilder() {
 
   const handleExportPDF = () => {
     const dd = state.currentTemplate?.docDefinition;
-    if (dd) downloadPDF(dd);
+    const filename = state.filename || 'document.pdf';
+    if (dd) downloadPDF(dd, filename);
   };
 
   const handleExportJSON = () => {
