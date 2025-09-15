@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ImageNodeData = {
   image: string;
@@ -32,15 +32,17 @@ export function ImageNodeItem({
   const isValidHttpUrl = (value: string) => /^https?:\/\//i.test(value);
   const isValidDataUrlBase64 = (value: string) => /^data:[^;]+;base64,[A-Za-z0-9+/=\s]+$/i.test(value);
 
+  const fit = data.fit;
   useEffect(() => {
-    setFitW(data.fit ? String(data.fit[0]) : "");
-    setFitH(data.fit ? String(data.fit[1]) : "");
-  }, [data.fit]);
+    setFitW(fit ? String(fit[0]) : "");
+    setFitH(fit ? String(fit[1]) : "");
+  }, [fit]);
 
   // Auto-detect mode based on current image value unless the user explicitly chose a mode
+  const image = data.image ?? "";
   useEffect(() => {
     if (userPickedModeRef.current) return;
-    const val = String((data as { image?: string }).image || "");
+    const val = String(image || "");
     if (val.startsWith('data:')) {
       setMode('base64');
     } else if (/^https?:\/\//i.test(val)) {
@@ -48,7 +50,7 @@ export function ImageNodeItem({
     } else if (val) {
       // Fallback: unknown string; keep current selection
     }
-  }, [data.image]);
+  }, [image]);
 
   // Validate drafts live and provide immediate feedback
   useEffect(() => {
@@ -110,7 +112,7 @@ export function ImageNodeItem({
       });
       onChange({ image: dataUrl });
       setUrlDraft("");
-    } catch (err) {
+    } catch {
       setUrlError('Failed to fetch image or convert to data URL (CORS may block it).');
     } finally {
       setUrlBusy(false);

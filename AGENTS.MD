@@ -47,6 +47,12 @@ bun lint
 
 # Run TypeScript checking
 bun type-check
+
+# Run lint only on changed files (fast inner loop) and fail on warnings
+bun lint -- --cache --max-warnings=0
+
+# Build like Vercel (Next.js production build)
+bun run build
 ```
 
 ## 📁 Project Structure
@@ -78,12 +84,16 @@ pdfmake-builder/
 - **Explicit types** - Avoid `any` type, use proper type definitions
 - **Interface over type** - Use interfaces for object shapes
 - **Type imports** - Use `import type` for type-only imports
+- **No `any`** - Do not introduce `any`. Extend `src/types/index.ts` with missing shapes.
+- **Use app types** - Prefer `DocDefinition`, `TableNode`, etc. from `src/types` over casting.
 
 ### React
 - **Functional components** - Use modern React patterns
 - **Custom hooks** - Extract reusable logic into custom hooks
 - **Component composition** - Prefer composition over inheritance
 - **Props interface** - Define props interfaces for all components
+- **Stable hook deps** - Keep dependency arrays stable. Do not depend on freshly created objects; memoize inputs first (e.g. `const ddStable = useMemo(() => dd ?? {}, [dd])`).
+- **No unused** - Remove unused imports/variables and avoid broad eslint-disable directives.
 
 ### Styling
 - **Tailwind CSS** - Use utility-first approach
@@ -120,13 +130,6 @@ bun test:coverage
 bun test -- <filename>
 ```
 
-### Testing Guidelines
-- **Test component behavior** - Focus on user interactions
-- **Mock external dependencies** - Isolate unit tests
-- **Test error states** - Ensure error handling works
-- **Accessibility testing** - Include a11y in tests
-- **Performance testing** - Monitor bundle size and render performance
-
 ## 🔧 Development Best Practices
 
 ### Git Workflow
@@ -140,10 +143,12 @@ bun test -- <filename>
 - **DRY principle** - Don't repeat yourself
 - **SOLID principles** - Follow software design principles
 - **Clean architecture** - Separate concerns properly
+- **Types first** - When UI needs new shapes, update `src/types/index.ts` instead of casting.
 
 ### Performance
 - **Code splitting** - Use dynamic imports for large components
 - **Memoization** - Use React.memo and useMemo appropriately
+- **Stable memo** - Depend on primitives or memoized objects in hooks to avoid re-renders.
 - **Image optimization** - Compress and lazy load images
 - **Bundle analysis** - Monitor bundle size regularly
 
@@ -152,22 +157,6 @@ bun test -- <filename>
 - **User feedback** - Provide clear error messages
 - **Logging** - Log errors for debugging (development only)
 - **Recovery options** - Allow users to recover from errors
-
-## 🛠️ Tools & Libraries
-
-### Core Dependencies
-- **Next.js 15+** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS
-- **@shadcn/ui** - Modern UI component library
-- **pdfMake** - PDF generation library
-- **React DnD** - Drag and drop functionality
-
-### Development Tools
-- **Bun** - Fast JavaScript runtime and package manager
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **TypeScript Compiler** - Type checking
 
 ## 🚨 Critical Considerations
 
@@ -189,6 +178,12 @@ bun test -- <filename>
 - **Polyfills** - Add only when necessary
 - **Mobile support** - Test on various screen sizes
 
+### CI/Build parity
+- **Zero warnings policy** - Run `bun lint -- --cache --max-warnings=0` and fix all warnings locally before pushing.
+- **Type-safety gate** - `bun type-check` must pass locally before pushing.
+- **Production build gate** - Run `bun run build` locally; the build must succeed.
+- **Avoid disables** - Do not use broad eslint disables; scope and justify any exceptions in review.
+
 ## 📝 Documentation Requirements
 
 ### Code Documentation
@@ -209,8 +204,12 @@ bun test -- <filename>
 1. **Check current milestone** - Review development-plan.md
 2. **Implement features** - Focus on current milestone only
 3. **Test thoroughly** - Ensure all requirements are met
-4. **Code review** - Submit for human review
-5. **Iterate** - Fix issues and improve based on feedback
+4. **Run gates locally (must pass)**
+   - `bun lint -- --cache --max-warnings=0`
+   - `bun type-check`
+   - `bun run build`
+5. **Code review** - Submit for human review
+6. **Iterate** - Fix issues and improve based on feedback
 
 ### Communication
 - **Clear instructions** - Provide specific implementation details
@@ -224,6 +223,7 @@ bun test -- <filename>
 - **Edge cases** - Consider and handle edge cases
 - **Performance** - Ensure good performance
 - **Accessibility** - Verify accessibility compliance
+- **No warnings in CI** - PRs must not introduce ESLint warnings; Next.js build should be clean.
 
 ## 🎯 Success Criteria
 

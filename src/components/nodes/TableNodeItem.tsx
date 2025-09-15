@@ -10,7 +10,6 @@ export function TableNodeItem({
   data: TableNode;
   onChange: (next: Partial<TableNode>) => void;
 }) {
-  const rows = useMemo(() => data.table.body.length, [data.table.body]);
   const cols = useMemo(() => (data.table.body[0]?.length ?? 0), [data.table.body]);
 
   const setCell = (r: number, c: number, value: string) => {

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useApp } from "@/lib/app-context";
+import type { DocDefinition } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,63 +27,95 @@ const PAGE_SIZES = [
 
 export function SettingsPanel() {
   const { state, dispatch } = useApp();
-  const dd = state.currentTemplate?.docDefinition ?? {};
+  const dd = state.currentTemplate?.docDefinition;
+  const ddStable = useMemo(() => dd ?? {}, [dd]);
 
   const filename = state.filename ?? "document.pdf";
 
-  const commonDefaults = useMemo(() => ({
-    pageSize: (dd as any).pageSize ?? "A4",
-    pageOrientation: (dd as any).pageOrientation ?? "portrait",
-    pageMargins: (dd as any).pageMargins ?? [40, 60, 40, 60],
-    background: typeof (dd as any).background === 'string' ? (dd as any).background : '',
-    watermarkText: typeof (dd as any).watermark === 'object' && (dd as any).watermark?.text ? String((dd as any).watermark.text) : '',
-    infoTitle: (dd as any).info?.title ?? '',
-    language: (dd as any).language ?? '',
-    filename,
-  }), [dd, filename]);
+  type CommonDefaults = {
+    pageSize: string;
+    pageOrientation: 'portrait' | 'landscape';
+    pageMargins: number[];
+    background: string;
+    watermarkText: string;
+    infoTitle: string;
+    language: string;
+    filename: string;
+  };
 
-  function updateCommon(partial: Partial<typeof commonDefaults>) {
+  const commonDefaults = useMemo<CommonDefaults>(() => {
+    const d = ddStable as Partial<DocDefinition>;
+    return {
+      pageSize: typeof d.pageSize === 'string' ? d.pageSize : 'A4',
+      pageOrientation: d.pageOrientation ?? 'portrait',
+      pageMargins: Array.isArray(d.pageMargins) ? d.pageMargins : [40, 60, 40, 60],
+      background: typeof d.background === 'string' ? d.background : '',
+      watermarkText: typeof d.watermark === 'object' && d.watermark?.text ? String(d.watermark.text) : '',
+      infoTitle: d.info?.title ?? '',
+      language: d.language ?? '',
+      filename,
+    };
+  }, [ddStable, filename]);
+
+  function updateCommon(partial: Partial<CommonDefaults>) {
     if (partial.filename !== undefined) {
       dispatch({ type: 'SET_FILENAME', payload: partial.filename });
     }
-    const toUpdate: Record<string, unknown> = {};
+    const d = ddStable as Partial<DocDefinition>;
+    const toUpdate: Partial<DocDefinition> = {};
     if (partial.pageSize !== undefined) toUpdate.pageSize = partial.pageSize;
-    if (partial.pageOrientation !== undefined) toUpdate.pageOrientation = partial.pageOrientation as 'portrait' | 'landscape';
-    if (partial.pageMargins !== undefined) toUpdate.pageMargins = partial.pageMargins as number[];
+    if (partial.pageOrientation !== undefined) toUpdate.pageOrientation = partial.pageOrientation;
+    if (partial.pageMargins !== undefined) toUpdate.pageMargins = partial.pageMargins;
     if (partial.background !== undefined) toUpdate.background = partial.background || undefined;
     if (partial.watermarkText !== undefined) toUpdate.watermark = partial.watermarkText ? { text: partial.watermarkText } : undefined;
-    if (partial.infoTitle !== undefined) toUpdate.info = { ...(dd as any).info, title: partial.infoTitle };
+    if (partial.infoTitle !== undefined) toUpdate.info = { ...(d.info ?? {}), title: partial.infoTitle };
     if (partial.language !== undefined) toUpdate.language = partial.language || undefined;
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate as any });
+      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
     }
   }
 
-  const advanced = {
-    compress: (dd as any).compress ?? true,
-    version: (dd as any).version as any,
-    userPassword: (dd as any).userPassword ?? '',
-    ownerPassword: (dd as any).ownerPassword ?? '',
-    permissions: (dd as any).permissions ?? {},
-    subset: (dd as any).subset as any,
-    tagged: (dd as any).tagged ?? false,
-    displayTitle: (dd as any).displayTitle ?? false,
-    infoAuthor: (dd as any).info?.author ?? '',
+  type AdvancedDefaults = {
+    compress: boolean;
+    version?: DocDefinition['version'];
+    userPassword: string;
+    ownerPassword: string;
+    permissions: NonNullable<DocDefinition['permissions']>;
+    subset?: DocDefinition['subset'];
+    tagged: boolean;
+    displayTitle: boolean;
+    infoAuthor: string;
   };
 
-  function updateAdvanced(partial: Partial<typeof advanced>) {
-    const toUpdate: Record<string, unknown> = {};
+  const advanced: AdvancedDefaults = (() => {
+    const d = ddStable as Partial<DocDefinition>;
+    return {
+      compress: d.compress ?? true,
+      version: d.version,
+      userPassword: d.userPassword ?? '',
+      ownerPassword: d.ownerPassword ?? '',
+      permissions: (d.permissions ?? {}) as NonNullable<DocDefinition['permissions']>,
+      subset: d.subset,
+      tagged: d.tagged ?? false,
+      displayTitle: d.displayTitle ?? false,
+      infoAuthor: d.info?.author ?? '',
+    };
+  })();
+
+  function updateAdvanced(partial: Partial<AdvancedDefaults>) {
+    const d = ddStable as Partial<DocDefinition>;
+    const toUpdate: Partial<DocDefinition> = {};
     if (partial.compress !== undefined) toUpdate.compress = partial.compress;
-    if (partial.version !== undefined) toUpdate.version = partial.version as any;
+    if (partial.version !== undefined) toUpdate.version = partial.version;
     if (partial.userPassword !== undefined) toUpdate.userPassword = partial.userPassword || undefined;
     if (partial.ownerPassword !== undefined) toUpdate.ownerPassword = partial.ownerPassword || undefined;
-    if (partial.permissions !== undefined) toUpdate.permissions = partial.permissions as any;
-    if (partial.subset !== undefined) toUpdate.subset = partial.subset as any;
+    if (partial.permissions !== undefined) toUpdate.permissions = partial.permissions;
+    if (partial.subset !== undefined) toUpdate.subset = partial.subset;
     if (partial.tagged !== undefined) toUpdate.tagged = partial.tagged;
     if (partial.displayTitle !== undefined) toUpdate.displayTitle = partial.displayTitle;
-    if (partial.infoAuthor !== undefined) toUpdate.info = { ...(dd as any).info, author: partial.infoAuthor };
+    if (partial.infoAuthor !== undefined) toUpdate.info = { ...(d.info ?? {}), author: partial.infoAuthor };
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate as any });
+      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
     }
   }
 
@@ -117,7 +150,7 @@ export function SettingsPanel() {
           </div>
           <div className="space-y-1">
             <label className="text-xs">Orientation</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={String(commonDefaults.pageOrientation)} onChange={(e) => updateCommon({ pageOrientation: e.target.value as any })}>
+            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={String(commonDefaults.pageOrientation)} onChange={(e) => updateCommon({ pageOrientation: e.target.value === 'landscape' ? 'landscape' : 'portrait' })}>
               <option value="portrait">portrait</option>
               <option value="landscape">landscape</option>
             </select>
@@ -159,7 +192,7 @@ export function SettingsPanel() {
           </div>
           <div className="space-y-1">
             <label className="text-xs">PDF Version</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.version || ''} onChange={(e) => updateAdvanced({ version: (e.target.value || undefined) as any })}>
+            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.version || ''} onChange={(e) => updateAdvanced({ version: (e.target.value || undefined) as DocDefinition['version'] })}>
               <option value="">auto</option>
               <option value="1.3">1.3</option>
               <option value="1.4">1.4</option>
@@ -188,7 +221,7 @@ export function SettingsPanel() {
                   <DialogTitle>Permissions</DialogTitle>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  {[
+                  {([
                     ['printing', ['lowResolution', 'highResolution', 'false']],
                     ['modifying', ['true', 'false']],
                     ['copying', ['true', 'false']],
@@ -196,24 +229,27 @@ export function SettingsPanel() {
                     ['fillingForms', ['true', 'false']],
                     ['contentAccessibility', ['true', 'false']],
                     ['documentAssembly', ['true', 'false']],
-                  ].map(([key, options]) => (
+                  ] as Array<[
+                    keyof NonNullable<DocDefinition['permissions']>,
+                    string[]
+                  ]>).map(([key, options]) => (
                     <div key={String(key)} className="space-y-1">
                       <label className="text-xs capitalize">{String(key)}</label>
                       <select
                         className="w-full h-9 rounded-md border bg-background px-3 text-sm"
-                        value={String((advanced.permissions as any)[key as string] ?? 'false')}
+                        value={String((advanced.permissions?.[key] ?? 'false'))}
                         onChange={(e) => {
                           const val = e.target.value;
-                          const next = { ...(advanced.permissions as any) };
+                          const next: NonNullable<DocDefinition['permissions']> = { ...(advanced.permissions ?? {}) };
                           if (key === 'printing') {
-                            next[key] = val === 'false' ? false : (val as any);
+                            next[key] = val === 'false' ? false : (val as 'lowResolution' | 'highResolution');
                           } else {
                             next[key] = val === 'true';
                           }
                           updateAdvanced({ permissions: next });
                         }}
                       >
-                        {(options as string[]).map((o) => (
+                        {options.map((o) => (
                           <option key={o} value={o}>{o}</option>
                         ))}
                       </select>
@@ -225,7 +261,7 @@ export function SettingsPanel() {
           </div>
           <div className="space-y-1">
             <label className="text-xs">PDF/A subset</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.subset || ''} onChange={(e) => updateAdvanced({ subset: (e.target.value || undefined) as any })}>
+            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.subset || ''} onChange={(e) => updateAdvanced({ subset: (e.target.value || undefined) as DocDefinition['subset'] })}>
               <option value="">none</option>
               <option value="PDF/A-1">PDF/A-1</option>
               <option value="PDF/A-1a">PDF/A-1a</option>
