@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown } from "lucide-react";
@@ -33,7 +33,7 @@ export function Header({
 
   const template = state.currentTemplate;
   const templates = state.templates ?? [];
-  const currentId = state.currentTemplateId ?? template?.id ?? "";
+  
 
   const templateName = template?.name ?? "Untitled";
   const setTemplateName = (name: string) => dispatch({ type: 'SET_TEMPLATE_NAME', payload: name });
@@ -175,15 +175,27 @@ export function Header({
     reader.readAsText(file);
   }
 
-  function normalizeToTemplate(input: any): Template {
-    const isTemplateShape = input && typeof input === 'object' && 'docDefinition' in input && 'id' in input && 'name' in input;
-    if (isTemplateShape) {
-      const t = input as Template;
+  function parseDate(value: unknown): Date {
+    if (value instanceof Date) return value;
+    if (typeof value === 'string' || typeof value === 'number') {
+      const d = new Date(value);
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  }
+
+  function isTemplateLike(input: unknown): input is { id?: unknown; name?: unknown; docDefinition?: unknown; createdAt?: unknown; updatedAt?: unknown } {
+    return !!(input && typeof input === 'object' && 'docDefinition' in (input as Record<string, unknown>) && 'id' in (input as Record<string, unknown>) && 'name' in (input as Record<string, unknown>));
+  }
+
+  function normalizeToTemplate(input: unknown): Template {
+    if (isTemplateLike(input)) {
+      const t = input as { id?: unknown; name?: unknown; docDefinition?: unknown; createdAt?: unknown; updatedAt?: unknown };
       return {
-        ...t,
         id: String(t.id ?? `tpl-${Date.now()}`),
         name: String(t.name ?? 'Imported Template'),
-        createdAt: t.createdAt ? new Date(t.createdAt as any) : new Date(),
+        docDefinition: (t.docDefinition as import("@/types").DocDefinition) ?? { content: [], styles: {} },
+        createdAt: parseDate(t.createdAt),
         updatedAt: new Date(),
       };
     }
@@ -192,7 +204,7 @@ export function Header({
     return {
       id: newId,
       name: 'Imported Template',
-      docDefinition: input,
+      docDefinition: input as import("@/types").DocDefinition,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

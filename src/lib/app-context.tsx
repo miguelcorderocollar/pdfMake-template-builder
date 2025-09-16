@@ -70,20 +70,23 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         case 'ADD_IMAGE_NODE': {
           const idx = op.payload.index ?? content.length;
-          const { index: _index, ...node } = op.payload;
-          content.splice(idx, 0, node);
+          const node = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+          delete node.index;
+          content.splice(idx, 0, node as unknown as import("@/types").DocContentItem);
           break;
         }
         case 'ADD_LIST_NODE': {
           const idx = op.payload.index ?? content.length;
-          const { index: _index, ...node } = op.payload;
-          content.splice(idx, 0, node);
+          const node = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+          delete node.index;
+          content.splice(idx, 0, node as unknown as import("@/types").DocContentItem);
           break;
         }
         case 'ADD_TABLE_NODE': {
           const idx = op.payload.index ?? content.length;
-          const { index: _index, ...node } = op.payload;
-          content.splice(idx, 0, node);
+          const node = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+          delete node.index;
+          content.splice(idx, 0, node as unknown as import("@/types").DocContentItem);
           break;
         }
         case 'UPDATE_STRING': {
@@ -106,7 +109,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
           const item = content[op.payload.index];
           if (item && typeof item === 'object' && 'image' in (item as { image: string })) {
             const next = { ...(item as Record<string, unknown>) };
-            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            const rest = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+            delete rest.index;
             for (const key of Object.keys(rest)) {
               (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
             }
@@ -118,7 +122,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
           const item = content[op.payload.index];
           if (item && typeof item === 'object' && ('ul' in (item as Record<string, unknown>) || 'ol' in (item as Record<string, unknown>))) {
             const next = { ...(item as Record<string, unknown>) };
-            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            const rest = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+            delete rest.index;
             for (const key of Object.keys(rest)) {
               (next as Record<string, unknown>)[key] = (rest as Record<string, unknown>)[key];
             }
@@ -143,11 +148,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
           const item = content[op.payload.index];
           if (item && typeof item === 'object' && 'table' in (item as Record<string, unknown>)) {
             const next = { ...(item as Record<string, unknown>) };
-            const { index, ...rest } = op.payload as { index: number } & Record<string, unknown>;
+            const rest = { ...(op.payload as Record<string, unknown>) } as { index?: number } & Record<string, unknown>;
+            delete rest.index;
             // Merge table sub-object carefully
             if ('table' in rest && typeof (rest as Record<string, unknown>).table === 'object') {
               const prevTable = (next.table as Record<string, unknown>) || {};
-              const incoming = (rest.table as Record<string, unknown>) || {};
+              const incoming = ((rest as Record<string, unknown>).table as Record<string, unknown>) || {};
               const merged = { ...prevTable, ...incoming } as { body?: unknown[][] } & Record<string, unknown>;
               if (Array.isArray(merged.body)) {
                 merged.body = merged.body.map((row) => Array.isArray(row) ? row.map((cell) => typeof cell === 'string' ? cell : String(cell ?? '')) : []);
