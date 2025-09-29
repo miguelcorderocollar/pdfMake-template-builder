@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useApp } from "@/lib/app-context";
 import type { DocDefinition } from "@/types";
 import { Card } from "@/components/ui/card";
@@ -32,6 +32,14 @@ export function SettingsPanel() {
 
   const filename = state.filename ?? "document.pdf";
 
+  // Header/Footer state
+  const [headerMode, setHeaderMode] = useState<'static' | 'dynamic'>('static');
+  const [footerMode, setFooterMode] = useState<'static' | 'dynamic'>('static');
+  const [headerContent, setHeaderContent] = useState('');
+  const [footerContent, setFooterContent] = useState('');
+  const [headerFunction, setHeaderFunction] = useState('');
+  const [footerFunction, setFooterFunction] = useState('');
+
   type CommonDefaults = {
     pageSize: string;
     pageOrientation: 'portrait' | 'landscape';
@@ -57,6 +65,42 @@ export function SettingsPanel() {
     };
   }, [ddStable, filename]);
 
+  // Initialize header/footer state from docDefinition
+  useEffect(() => {
+    const d = ddStable as DocDefinition;
+    if (d.header) {
+      if (typeof d.header === 'function') {
+        setHeaderMode('dynamic');
+        setHeaderFunction(d.header.toString());
+        setHeaderContent('');
+      } else {
+        setHeaderMode('static');
+        setHeaderContent(typeof d.header === 'string' ? d.header : JSON.stringify(d.header, null, 2));
+        setHeaderFunction('');
+      }
+    } else {
+      setHeaderMode('static');
+      setHeaderContent('');
+      setHeaderFunction('');
+    }
+
+    if (d.footer) {
+      if (typeof d.footer === 'function') {
+        setFooterMode('dynamic');
+        setFooterFunction(d.footer.toString());
+        setFooterContent('');
+      } else {
+        setFooterMode('static');
+        setFooterContent(typeof d.footer === 'string' ? d.footer : JSON.stringify(d.footer, null, 2));
+        setFooterFunction('');
+      }
+    } else {
+      setFooterMode('static');
+      setFooterContent('');
+      setFooterFunction('');
+    }
+  }, [ddStable]);
+
   function updateCommon(partial: Partial<CommonDefaults>) {
     if (partial.filename !== undefined) {
       dispatch({ type: 'SET_FILENAME', payload: partial.filename });
@@ -73,6 +117,90 @@ export function SettingsPanel() {
     if (Object.keys(toUpdate).length) {
       dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
     }
+  }
+
+  function updateHeader() {
+    const d = ddStable as DocDefinition;
+    const toUpdate: Partial<DocDefinition> = {};
+    if (headerMode === 'static') {
+      if (headerContent.trim()) {
+        try {
+          // Try to parse as JSON first
+          toUpdate.header = JSON.parse(headerContent);
+        } catch {
+          // If not valid JSON, treat as string
+          toUpdate.header = headerContent.trim();
+        }
+      } else {
+        toUpdate.header = undefined;
+      }
+    } else {
+      if (headerFunction.trim()) {
+        try {
+          // Create a function from the string - use the function body directly
+          const funcBody = headerFunction.trim();
+          // Remove function wrapper if present
+          const cleanBody = funcBody.startsWith('function') ?
+            funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, '$1') :
+            funcBody;
+          toUpdate.header = new Function('currentPage', 'pageCount', 'pageSize', cleanBody) as DocDefinition['header'];
+        } catch (error) {
+          console.error('Invalid header function:', error);
+          // Keep existing header if function is invalid
+        }
+      } else {
+        toUpdate.header = undefined;
+      }
+    }
+    if (Object.keys(toUpdate).length) {
+      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+    }
+  }
+
+  function updateFooter() {
+    const d = ddStable as DocDefinition;
+    const toUpdate: Partial<DocDefinition> = {};
+    if (footerMode === 'static') {
+      if (footerContent.trim()) {
+        try {
+          // Try to parse as JSON first
+          toUpdate.footer = JSON.parse(footerContent);
+        } catch {
+          // If not valid JSON, treat as string
+          toUpdate.footer = footerContent.trim();
+        }
+      } else {
+        toUpdate.footer = undefined;
+      }
+    } else {
+      if (footerFunction.trim()) {
+        try {
+          // Create a function from the string - use the function body directly
+          const funcBody = footerFunction.trim();
+          // Remove function wrapper if present
+          const cleanBody = funcBody.startsWith('function') ?
+            funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, '$1') :
+            funcBody;
+          toUpdate.footer = new Function('currentPage', 'pageCount', 'pageSize', cleanBody) as DocDefinition['footer'];
+        } catch (error) {
+          console.error('Invalid footer function:', error);
+          // Keep existing footer if function is invalid
+        }
+      } else {
+        toUpdate.footer = undefined;
+      }
+    }
+    if (Object.keys(toUpdate).length) {
+      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+    }
+  }
+
+  function updateHeaderFunction() {
+    updateHeader();
+  }
+
+  function updateFooterFunction() {
+    updateFooter();
   }
 
   type AdvancedDefaults = {
@@ -180,6 +308,125 @@ export function SettingsPanel() {
           </div>
         </div>
       </Card>
+
+      <Collapsible title="Headers & Footers">
+        <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">Header</h4>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <button
+                  className={`px-3 py-1 text-xs rounded ${headerMode === 'static' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => setHeaderMode('static')}
+                >
+                  Static
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded ${headerMode === 'dynamic' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => setHeaderMode('dynamic')}
+                >
+                  Dynamic
+                </button>
+              </div>
+              {headerMode === 'static' ? (
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-xs">Header Content</label>
+                    <textarea
+                      value={headerContent}
+                      onChange={(e) => setHeaderContent(e.target.value)}
+                      placeholder='Enter header text or JSON structure (e.g., {"text": "Header", "style": "header", "alignment": "center"})'
+                      className="w-full h-20 p-2 text-xs border rounded resize-none"
+                    />
+                  </div>
+                  <Button size="sm" onClick={updateHeader} className="w-full">
+                    Update Header
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-xs">Function Code</label>
+                    <textarea
+                      value={headerFunction}
+                      onChange={(e) => setHeaderFunction(e.target.value)}
+                      placeholder={`// Example: return page header content
+return { text: 'Header Text', alignment: 'center', style: 'header' };`}
+                      className="w-full h-24 p-2 text-xs border rounded resize-none font-mono"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    Available variables: currentPage, pageCount, pageSize
+                  </div>
+                  <Button size="sm" onClick={updateHeaderFunction} className="w-full">
+                    Update Header Function
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">Footer</h4>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <button
+                  className={`px-3 py-1 text-xs rounded ${footerMode === 'static' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => setFooterMode('static')}
+                >
+                  Static
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded ${footerMode === 'dynamic' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => setFooterMode('dynamic')}
+                >
+                  Dynamic
+                </button>
+              </div>
+              {footerMode === 'static' ? (
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-xs">Footer Content</label>
+                    <textarea
+                      value={footerContent}
+                      onChange={(e) => setFooterContent(e.target.value)}
+                      placeholder='Enter footer text or JSON structure (e.g., {"columns": ["Left", {"text": "Right", "alignment": "right"}]})'
+                      className="w-full h-20 p-2 text-xs border rounded resize-none"
+                    />
+                  </div>
+                  <Button size="sm" onClick={updateFooter} className="w-full">
+                    Update Footer
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-xs">Function Code</label>
+                    <textarea
+                      value={footerFunction}
+                      onChange={(e) => setFooterFunction(e.target.value)}
+                      placeholder={`// Example: return page footer content
+return {
+  columns: [
+    'Left part',
+    { text: 'Right part', alignment: 'right' }
+  ]
+};`}
+                      className="w-full h-24 p-2 text-xs border rounded resize-none font-mono"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    Available variables: currentPage, pageCount, pageSize
+                  </div>
+                  <Button size="sm" onClick={updateFooterFunction} className="w-full">
+                    Update Footer Function
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Collapsible>
 
       <Collapsible title="Advanced settings">
         <div className="grid grid-cols-1 gap-3">

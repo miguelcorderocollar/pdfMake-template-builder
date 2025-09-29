@@ -5,6 +5,17 @@ export const stylesSimpleDoc: DocDefinition = {
   pageSize: 'A4',
   pageOrientation: 'portrait',
   pageMargins: [40, 60, 40, 60],
+  header: {
+    text: 'PDFMake Template Builder',
+    style: 'header',
+    alignment: 'center'
+  },
+  footer: {
+    columns: [
+      'Left part',
+      { text: 'Right part', alignment: 'right' }
+    ]
+  },
   info: { title: 'Styles Simple Example' },
   language: 'en-US',
   watermark: { text: '' },
@@ -86,6 +97,15 @@ export const stylesSimpleDoc: DocDefinition = {
     },
     {
       text: 'Ready to customize further? Add new nodes from the Elements panel or import your own pdfMake definition to see how everything renders instantly.',
+      margin: [0, 0, 0, 20]
+    },
+    {
+      text: 'Test Header/Footer',
+      style: 'header',
+      pageBreak: 'before'
+    },
+    {
+      text: 'This content appears on a new page to test the header and footer functionality. The header shows "PDFMake Template Builder" centered at the top, and the footer shows "Left part" on the left and "Right part" on the right.',
       margin: [0, 0, 0, 20]
     }
   ],

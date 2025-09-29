@@ -85,7 +85,30 @@ export type TableNode = {
   style?: string | string[];
 };
 
-export type DocContentItem = string | TextNode | ImageNode | ListNode | TableNode;
+export type CanvasNode = {
+  canvas?: Array<{
+    type: string;
+    x?: number;
+    y?: number;
+    w?: number;
+    h?: number;
+    r?: number;
+    sx?: number;
+    sy?: number;
+    x1?: number;
+    y1?: number;
+    x2?: number;
+    y2?: number;
+    lineWidth?: number;
+    lineColor?: string;
+    color?: string;
+    fillOpacity?: number;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+};
+
+export type DocContentItem = string | TextNode | ImageNode | ListNode | TableNode | CanvasNode;
 
 export interface DocDefinition {
   content: Array<DocContentItem>;
@@ -93,6 +116,8 @@ export interface DocDefinition {
   pageSize?: string | { width: number; height: number };
   pageOrientation?: 'portrait' | 'landscape';
   pageMargins?: number[];
+  header?: string | DocContentItem | DocContentItem[] | ((currentPage: number, pageCount: number, pageSize: { width: number; height: number }) => string | DocContentItem | DocContentItem[]);
+  footer?: string | DocContentItem | DocContentItem[] | ((currentPage: number, pageCount: number, pageSize: { width: number; height: number }) => string | DocContentItem | DocContentItem[]);
   background?: string | { text?: string; [key: string]: unknown } | ((currentPage: number, pageSize: { width: number; height: number }) => unknown);
   watermark?: {
     text?: string;
