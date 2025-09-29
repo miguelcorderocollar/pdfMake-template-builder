@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown } from "lucide-react";
+import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
 import type { Template, Theme } from "@/types";
@@ -67,6 +67,13 @@ export function Header({
       return;
     }
     dispatch({ type: 'SAVE_TEMPLATE' });
+  }
+
+  function handleDelete() {
+    if (!template) return;
+    const confirmDelete = confirm(`Delete template "${template.name}"? This cannot be undone.`);
+    if (!confirmDelete) return;
+    dispatch({ type: 'DELETE_TEMPLATE', payload: { id: template.id } });
   }
 
   function copyTemplate() {
@@ -255,6 +262,14 @@ export function Header({
               <Button variant="outline" size="sm" onClick={handleSave}>
                 <Save className="h-4 w-4 mr-2" />
                 Save
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDelete}
+                aria-label="Delete template"
+              >
+                <Trash className="h-4 w-4" />
               </Button>
               <TooltipProvider>
                 <Tooltip>
