@@ -27,7 +27,7 @@ export const demoTemplate: DocDefinition = {
       _name: 'Main Title'
     },
     {
-      text: 'This default template walks through each node type so you can see how updates in the editor reflect in the PDF preview. Try selecting items in the sidebar to edit their content, style, or configuration.',
+      text: [{ text: 'This default template walks through each node type so you can see how updates in the editor reflect in the PDF preview. Try selecting items in the sidebar to edit their content, style, or configuration.', id: 'introduction' }],
       margin: [0, 0, 0, 20],
       _name: 'Introduction'
     },
@@ -47,7 +47,7 @@ export const demoTemplate: DocDefinition = {
       margin: [0, 0, 0, 20]
     },
     {
-      text: 'Adding images',
+      text: [{ text: 'Adding images', id: 'imagesSection' }],
       style: 'subheader',
       margin: [0, 0, 0, 15],
       _name: 'Images Section'
@@ -179,6 +179,60 @@ export const demoTemplate: DocDefinition = {
         ' alongside inline styles.'
       ],
       margin: [0, 0, 0, 20]
+    },
+    {
+      text: [{ text: 'Interactive Links & Navigation', id: 'linksSection' }],
+      style: 'subheader',
+      margin: [0, 0, 0, 15],
+      _name: 'Links Section'
+    },
+    {
+      text: 'PDFMake supports interactive elements in your documents. You can create external links, internal page navigation, and document anchors:',
+      margin: [0, 0, 0, 10]
+    },
+    {
+      text: [
+        '• External Links: Visit ',
+        { text: 'pdfMake documentation', link: 'https://pdfmake.github.io/docs/', color: '#2563eb', decoration: 'underline' },
+        ' or check out ',
+        { text: 'GitHub repository', link: 'https://github.com/bpampuch/pdfmake', color: '#2563eb', decoration: 'underline' },
+        ' for more examples.'
+      ],
+      margin: [0, 0, 0, 10],
+      _name: 'External Links Example'
+    },
+    {
+      text: [
+        '• Internal Navigation: Jump to ',
+        { text: 'page 2', linkToPage: 2, color: '#7c3aed', decoration: 'underline' },
+        ' or ',
+        { text: 'page 1', linkToPage: 1, color: '#7c3aed', decoration: 'underline' },
+        ' using page links.'
+      ],
+      margin: [0, 0, 0, 10],
+      _name: 'Page Links Example'
+    },
+    {
+      text: [
+        '• Document Anchors: Click to go back to the ',
+        { text: 'Introduction section', linkToDestination: 'introduction', color: '#059669', decoration: 'underline' },
+        ' or jump to the ',
+        { text: 'Images section', linkToDestination: 'imagesSection', color: '#059669', decoration: 'underline' },
+        ' using destination IDs.'
+      ],
+      margin: [0, 0, 0, 10],
+      _name: 'Destination Links Example'
+    },
+    {
+      text: [
+        '• Mixed Styles: You can combine links with other formatting like ',
+        { text: 'bold external links', link: 'https://example.com', bold: true, color: '#dc2626', decoration: 'underline' },
+        ' or ',
+        { text: 'italic page links', linkToPage: 1, italics: true, fontSize: 14, color: '#ea580c', decoration: 'underline' },
+        '.'
+      ],
+      margin: [0, 0, 0, 20],
+      _name: 'Mixed Styling Links'
     },
     {
       text: 'Test Header/Footer',

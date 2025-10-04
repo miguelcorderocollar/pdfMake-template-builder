@@ -44,7 +44,7 @@ export type PdfStyle = {
   decorationColor?: string;
 };
 
-// TextSpan represents inline text with optional styling
+// TextSpan represents inline text with optional styling and links
 export type TextSpan = string | {
   text: string;
   style?: string | string[];
@@ -56,12 +56,22 @@ export type TextSpan = string | {
   decorationStyle?: 'dashed' | 'dotted' | 'double' | 'wavy';
   decorationColor?: string;
   background?: string;
+  // Link properties
+  link?: string; // External URL
+  linkToPage?: number; // Page number to link to
+  linkToDestination?: string; // Destination ID within document
+  id?: string; // Destination identifier for this span
 };
 
 export type TextNode = {
   text: string | TextSpan[];
   style?: string | string[];
   _name?: string;
+  // Link properties (can be set on the whole text node, not just spans)
+  link?: string;
+  linkToPage?: number;
+  linkToDestination?: string;
+  id?: string; // Destination identifier for this node
 };
 
 export type ImageNode = {

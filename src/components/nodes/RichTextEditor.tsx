@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Bold, Italic, Type, Palette } from "lucide-react";
 import type { TextSpan } from "@/types";
+import { useSpanEditor, getSpanText } from "@/hooks/use-span-editor";
+import { SpanToolbar } from "./rich-text/SpanToolbar";
+import { LinkControls } from "./rich-text/LinkControls";
+import { SpanPreview } from "./rich-text/SpanPreview";
 
 interface RichTextEditorProps {
   spans: TextSpan[];
@@ -12,93 +14,20 @@ interface RichTextEditorProps {
 
 /**
  * Rich text editor component for editing text with inline styles
- * Supports bold, italic, font size, color, and style references
+ * Supports bold, italic, font size, color, style references, and links
  */
 export function RichTextEditor({ spans, onChange, styles }: RichTextEditorProps) {
-  const [selectedSpanIndex, setSelectedSpanIndex] = useState<number | null>(null);
-
-  const addSpan = () => {
-    onChange([...spans, ""]);
-    setSelectedSpanIndex(spans.length);
-  };
-
-  const updateSpan = (index: number, newSpan: TextSpan) => {
-    const updated = [...spans];
-    updated[index] = newSpan;
-    onChange(updated);
-  };
-
-  const deleteSpan = (index: number) => {
-    const updated = spans.filter((_, i) => i !== index);
-    onChange(updated);
-    if (selectedSpanIndex === index) {
-      setSelectedSpanIndex(null);
-    } else if (selectedSpanIndex !== null && selectedSpanIndex > index) {
-      setSelectedSpanIndex(selectedSpanIndex - 1);
-    }
-  };
-
-  const toggleBold = (index: number) => {
-    const span = spans[index];
-    if (typeof span === "string") {
-      updateSpan(index, { text: span, bold: true });
-    } else {
-      updateSpan(index, { ...span, bold: !span.bold });
-    }
-  };
-
-  const toggleItalic = (index: number) => {
-    const span = spans[index];
-    if (typeof span === "string") {
-      updateSpan(index, { text: span, italics: true });
-    } else {
-      updateSpan(index, { ...span, italics: !span.italics });
-    }
-  };
-
-  const setFontSize = (index: number, size: number | undefined) => {
-    const span = spans[index];
-    if (typeof span === "string") {
-      updateSpan(index, { text: span, fontSize: size });
-    } else {
-      updateSpan(index, { ...span, fontSize: size });
-    }
-  };
-
-  const setColor = (index: number, color: string | undefined) => {
-    const span = spans[index];
-    if (typeof span === "string") {
-      updateSpan(index, { text: span, color });
-    } else {
-      updateSpan(index, { ...span, color });
-    }
-  };
-
-  const setStyleRef = (index: number, styleRef: string | undefined) => {
-    const span = spans[index];
-    if (typeof span === "string") {
-      updateSpan(index, { text: span, style: styleRef });
-    } else {
-      updateSpan(index, { ...span, style: styleRef });
-    }
-  };
-
-  const getSpanText = (span: TextSpan): string => {
-    return typeof span === "string" ? span : span.text;
-  };
-
-  const getSpanProps = (span: TextSpan) => {
-    if (typeof span === "string") {
-      return { bold: false, italics: false, fontSize: undefined, color: undefined, style: undefined };
-    }
-    return {
-      bold: span.bold || false,
-      italics: span.italics || false,
-      fontSize: span.fontSize,
-      color: span.color,
-      style: span.style,
-    };
-  };
+  const {
+    selectedSpanIndex,
+    setSelectedSpanIndex,
+    showLinksSection,
+    addSpan,
+    deleteSpan,
+    setSpanText,
+    setSpanProperty,
+    toggleSpanProperty,
+    toggleLinksSection,
+  } = useSpanEditor(spans, onChange);
 
   return (
     <div className="space-y-3">
@@ -120,7 +49,6 @@ export function RichTextEditor({ spans, onChange, styles }: RichTextEditorProps)
         <div className="space-y-2">
           {spans.map((span, idx) => {
             const text = getSpanText(span);
-            const props = getSpanProps(span);
             const isSelected = selectedSpanIndex === idx;
 
             return (
@@ -135,120 +63,39 @@ export function RichTextEditor({ spans, onChange, styles }: RichTextEditorProps)
                 <input
                   type="text"
                   value={text}
-                  onChange={(e) => {
-                    if (typeof span === "string") {
-                      updateSpan(idx, e.target.value);
-                    } else {
-                      updateSpan(idx, { ...span, text: e.target.value });
-                    }
-                  }}
+                  onChange={(e) => setSpanText(idx, e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="Enter text..."
                 />
 
                 {/* Toolbar */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Bold button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleBold(idx);
-                    }}
-                    className={`h-8 w-8 rounded-md border flex items-center justify-center transition-colors ${
-                      props.bold ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                    }`}
-                    title="Bold"
-                  >
-                    <Bold className="h-4 w-4" />
-                  </button>
+                <SpanToolbar
+                  span={span}
+                  spanIndex={idx}
+                  styles={styles}
+                  showLinksSection={showLinksSection[idx] || false}
+                  onToggleBold={() => toggleSpanProperty(idx, 'bold')}
+                  onToggleItalic={() => toggleSpanProperty(idx, 'italics')}
+                  onSetFontSize={(size) => setSpanProperty(idx, 'fontSize', size)}
+                  onSetColor={(color) => setSpanProperty(idx, 'color', color)}
+                  onSetStyle={(style) => setSpanProperty(idx, 'style', style)}
+                  onToggleLinks={() => toggleLinksSection(idx)}
+                  onDelete={() => deleteSpan(idx)}
+                />
 
-                  {/* Italic button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleItalic(idx);
-                    }}
-                    className={`h-8 w-8 rounded-md border flex items-center justify-center transition-colors ${
-                      props.italics ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                    }`}
-                    title="Italic"
-                  >
-                    <Italic className="h-4 w-4" />
-                  </button>
-
-                  {/* Font size */}
-                  <div className="flex items-center gap-1">
-                    <Type className="h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="number"
-                      value={props.fontSize ?? ""}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        setFontSize(idx, e.target.value === "" ? undefined : Number(e.target.value));
-                      }}
-                      className="w-16 h-8 rounded-md border border-input bg-background px-2 text-xs"
-                      placeholder="Size"
-                      min="1"
-                    />
-                  </div>
-
-                  {/* Color */}
-                  <div className="flex items-center gap-1">
-                    <Palette className="h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={props.color ?? ""}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        setColor(idx, e.target.value || undefined);
-                      }}
-                      className="w-20 h-8 rounded-md border border-input bg-background px-2 text-xs"
-                      placeholder="Color"
-                    />
-                  </div>
-
-                  {/* Style reference */}
-                  <select
-                    value={typeof props.style === "string" ? props.style : ""}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      setStyleRef(idx, e.target.value || undefined);
-                    }}
-                    className="h-8 px-2 rounded-md border border-input bg-background text-xs hover:bg-accent transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <option value="">(no style)</option>
-                    {styles && Object.keys(styles).map((name) => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
-
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteSpan(idx);
-                    }}
-                    className="h-8 px-3 rounded-md border text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors ml-auto"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {/* Link controls - collapsible */}
+                {showLinksSection[idx] && (
+                  <LinkControls
+                    span={span}
+                    onSetLink={(link) => setSpanProperty(idx, 'link', link)}
+                    onSetLinkToPage={(page) => setSpanProperty(idx, 'linkToPage', page)}
+                    onSetLinkToDestination={(dest) => setSpanProperty(idx, 'linkToDestination', dest)}
+                    onSetId={(id) => setSpanProperty(idx, 'id', id)}
+                  />
+                )}
 
                 {/* Preview */}
-                <div className="text-xs text-muted-foreground">
-                  Preview:{" "}
-                  <span
-                    style={{
-                      fontWeight: props.bold ? "bold" : "normal",
-                      fontStyle: props.italics ? "italic" : "normal",
-                      fontSize: props.fontSize ? `${props.fontSize}px` : undefined,
-                      color: props.color || undefined,
-                    }}
-                  >
-                    {text || "(empty)"}
-                  </span>
-                </div>
+                <SpanPreview span={span} text={text} />
               </div>
             );
           })}
@@ -257,4 +104,3 @@ export function RichTextEditor({ spans, onChange, styles }: RichTextEditorProps)
     </div>
   );
 }
-
