@@ -268,7 +268,7 @@ export function SettingsPanel() {
           </div>
           <div className="space-y-1">
             <label className="text-xs">Page size</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={String(commonDefaults.pageSize)} onChange={(e) => updateCommon({ pageSize: e.target.value })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={String(commonDefaults.pageSize)} onChange={(e) => updateCommon({ pageSize: e.target.value })}>
               {PAGE_SIZES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -276,7 +276,7 @@ export function SettingsPanel() {
           </div>
           <div className="space-y-1">
             <label className="text-xs">Orientation</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={String(commonDefaults.pageOrientation)} onChange={(e) => updateCommon({ pageOrientation: e.target.value === 'landscape' ? 'landscape' : 'portrait' })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={String(commonDefaults.pageOrientation)} onChange={(e) => updateCommon({ pageOrientation: e.target.value === 'landscape' ? 'landscape' : 'portrait' })}>
               <option value="portrait">portrait</option>
               <option value="landscape">landscape</option>
             </select>
@@ -430,14 +430,14 @@ return {
         <div className="grid grid-cols-1 gap-3">
           <div className="space-y-1">
             <label className="text-xs">Compress</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.compress ? 'true' : 'false'} onChange={(e) => updateAdvanced({ compress: e.target.value === 'true' })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.compress ? 'true' : 'false'} onChange={(e) => updateAdvanced({ compress: e.target.value === 'true' })}>
               <option value="true">true</option>
               <option value="false">false</option>
             </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs">PDF Version</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.version || ''} onChange={(e) => updateAdvanced({ version: (e.target.value || undefined) as DocDefinition['version'] })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.version || ''} onChange={(e) => updateAdvanced({ version: (e.target.value || undefined) as DocDefinition['version'] })}>
               <option value="">auto</option>
               <option value="1.3">1.3</option>
               <option value="1.4">1.4</option>
@@ -481,7 +481,7 @@ return {
                     <div key={String(key)} className="space-y-1">
                       <label className="text-xs capitalize">{String(key)}</label>
                       <select
-                        className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
                         value={String((advanced.permissions?.[key] ?? 'false'))}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -506,7 +506,7 @@ return {
           </div>
           <div className="space-y-1">
             <label className="text-xs">PDF/A subset</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.subset || ''} onChange={(e) => updateAdvanced({ subset: (e.target.value || undefined) as DocDefinition['subset'] })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.subset || ''} onChange={(e) => updateAdvanced({ subset: (e.target.value || undefined) as DocDefinition['subset'] })}>
               <option value="">none</option>
               <option value="PDF/A-1">PDF/A-1</option>
               <option value="PDF/A-1a">PDF/A-1a</option>
@@ -521,14 +521,14 @@ return {
           </div>
           <div className="space-y-1">
             <label className="text-xs">Tagged PDF</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.tagged ? 'true' : 'false'} onChange={(e) => updateAdvanced({ tagged: e.target.value === 'true' })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.tagged ? 'true' : 'false'} onChange={(e) => updateAdvanced({ tagged: e.target.value === 'true' })}>
               <option value="true">true</option>
               <option value="false">false</option>
             </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs">Display title in window</label>
-            <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={advanced.displayTitle ? 'true' : 'false'} onChange={(e) => updateAdvanced({ displayTitle: e.target.value === 'true' })}>
+            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.displayTitle ? 'true' : 'false'} onChange={(e) => updateAdvanced({ displayTitle: e.target.value === 'true' })}>
               <option value="true">true</option>
               <option value="false">false</option>
             </select>

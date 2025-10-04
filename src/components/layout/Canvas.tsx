@@ -3,11 +3,8 @@
 import { useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { ContentList } from "@/components/nodes/ContentList";
-import { useApp } from "@/lib/app-context";
 
 export function Canvas() {
-  useApp();
-
   const onDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   }, []);
@@ -20,7 +17,7 @@ export function Canvas() {
     <Card className="flex-1 m-4 overflow-auto">
       <div className="mx-auto my-6 w-full max-w-4xl">
         <div
-          className="relative bg-card text-card-foreground rounded-xl border shadow-sm p-6"
+          className="relative p-6"
           onDrop={onDrop}
           onDragOver={onDragOver}
         >

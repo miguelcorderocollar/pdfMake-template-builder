@@ -44,7 +44,7 @@ export type PdfStyle = {
   decorationColor?: string;
 };
 
-export type TextNode = { text: string; style?: string | string[] };
+export type TextNode = { text: string; style?: string | string[]; _name?: string };
 
 export type ImageNode = {
   image: string; // data URL or URL
@@ -52,6 +52,7 @@ export type ImageNode = {
   height?: number;
   fit?: [number, number];
   opacity?: number; // 0..1
+  _name?: string;
   [key: string]: unknown;
 };
 
@@ -60,6 +61,7 @@ export type UnorderedListNode = {
   type?: 'square' | 'circle' | 'none';
   color?: string;
   markerColor?: string;
+  _name?: string;
 };
 
 export type OrderedListNode = {
@@ -70,6 +72,7 @@ export type OrderedListNode = {
   separator?: string | [string, string];
   color?: string;
   markerColor?: string;
+  _name?: string;
 };
 
 export type ListNode = UnorderedListNode | OrderedListNode;
@@ -83,6 +86,7 @@ export type TableNode = {
   };
   layout?: 'noBorders' | 'headerLineOnly' | 'lightHorizontalLines';
   style?: string | string[];
+  _name?: string;
 };
 
 export type CanvasNode = {
@@ -200,7 +204,7 @@ export type AppAction =
       | { type: 'ADD_TABLE_NODE'; payload: { index?: number } & TableNode }
       | { type: 'ADD_CUSTOM_NODE'; payload: { index?: number; content: unknown } }
       | { type: 'UPDATE_STRING'; payload: { index: number; value: string } }
-      | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[] } }
+      | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[]; _name?: string } }
       | { type: 'UPDATE_IMAGE_NODE'; payload: { index: number } & Partial<ImageNode> }
       | { type: 'UPDATE_LIST_NODE'; payload: { index: number } & (Partial<UnorderedListNode> | Partial<OrderedListNode>) }
       | { type: 'UPDATE_TABLE_NODE'; payload: { index: number } & Partial<TableNode> }

@@ -99,7 +99,7 @@ export function UnknownNodeEditor({ index, value }: UnknownNodeEditorProps) {
         <span className="ml-2 text-muted-foreground/60">— Supports single or multiple objects in one node</span>
       </div>
       <textarea
-        className="w-full h-40 rounded border bg-background p-2 font-mono text-xs"
+        className="w-full h-40 rounded border border-border bg-background p-2 font-mono text-xs"
         value={raw}
         onChange={(e) => {
           setRaw(e.target.value);
@@ -122,14 +122,14 @@ export function UnknownNodeEditor({ index, value }: UnknownNodeEditorProps) {
         </div>
         <div className="flex gap-2">
           <button
-            className="h-7 px-3 inline-flex items-center justify-center rounded border bg-background text-xs"
+            className="h-7 px-3 inline-flex items-center justify-center rounded border border-border bg-background text-xs"
             onClick={handleTidy}
             disabled={isSaving || !raw.trim()}
           >
             Tidy JSON
           </button>
           <button
-            className="h-7 px-3 inline-flex items-center justify-center rounded border bg-background text-xs"
+            className="h-7 px-3 inline-flex items-center justify-center rounded border border-border bg-background text-xs"
             onClick={handleSave}
             disabled={isSaving || !isDirty}
           >

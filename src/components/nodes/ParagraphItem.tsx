@@ -19,11 +19,10 @@ export function ParagraphItem({ value, onChange }: { value: string; onChange: (v
 
 	return (
 		<div className="text-sm">
-			<div className="text-xs text-muted-foreground mb-1">Paragraph</div>
 			{editing ? (
 				<textarea
 					ref={inputRef}
-					className="w-full resize-y rounded border bg-background p-2 leading-relaxed"
+					className="w-full resize-y rounded-md border border-input bg-background p-3 leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
 					rows={3}
 					value={draft}
 					onChange={(e) => setDraft(e.target.value)}
@@ -32,10 +31,10 @@ export function ParagraphItem({ value, onChange }: { value: string; onChange: (v
 				/>
 			) : (
 				<div
-					className="whitespace-pre-wrap break-words leading-relaxed cursor-text"
+					className="whitespace-pre-wrap break-words leading-relaxed cursor-text p-3 rounded-md hover:bg-accent/50 transition-colors min-h-[3rem] flex items-center"
 					onClick={() => setEditing(true)}
 				>
-					{value}
+					{value || <span className="text-muted-foreground italic">Click to edit paragraph...</span>}
 				</div>
 			)}
 		</div>

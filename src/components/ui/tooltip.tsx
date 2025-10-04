@@ -14,7 +14,7 @@ export function TooltipContent({ className, side = "top", ...props }: React.Comp
         side={side}
         {...props}
         className={[
-          "z-[60] overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
+          "z-[60] overflow-hidden rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
           className ?? "",
         ].join(" ")}
       />

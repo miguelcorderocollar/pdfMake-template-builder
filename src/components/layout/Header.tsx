@@ -62,8 +62,19 @@ export function Header({
       if (importMenuRef.current && !importMenuRef.current.contains(e.target as Node)) setImportOpen(false);
       if (templatesMenuRef.current && !templatesMenuRef.current.contains(e.target as Node)) setTemplatesOpen(false);
     }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setExportOpen(false);
+        setImportOpen(false);
+        setTemplatesOpen(false);
+      }
+    }
     document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   function handleDelete() {
@@ -165,7 +176,7 @@ export function Header({
               <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
           </Button>
             {templatesOpen && (
-              <div className="absolute right-0 mt-1 w-64 rounded-md border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute right-0 mt-1 w-64 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
                 <div className="max-h-64 overflow-auto py-1">
                   {templates.map(t => (
                     <button key={t.id} className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setTemplatesOpen(false); handleSelectTemplate(t.id); }}>
@@ -187,7 +198,7 @@ export function Header({
               <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
             </Button>
             {importOpen && (
-              <div className="absolute right-0 mt-1 w-56 rounded-md border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute right-0 mt-1 w-56 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); importInputRef.current?.click(); }}>Import template from file</button>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); setPasteOpen(true); }}>Paste template (JSON)</button>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); importAllInputRef.current?.click(); }}>Import all templates</button>
@@ -204,7 +215,7 @@ export function Header({
               <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
           </Button>
             {exportOpen && (
-              <div className="absolute right-0 mt-1 w-56 rounded-md border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute right-0 mt-1 w-56 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); copyCurrentTemplate(); }}>Duplicate current template</button>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportCurrent(); }}>Export current template</button>
                 <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportAll(); }}>Export all templates</button>
@@ -236,7 +247,7 @@ export function Header({
           <textarea
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
-            className="min-h-40 w-full rounded-md border bg-background p-2 text-sm"
+            className="min-h-40 w-full rounded-md border border-input bg-background p-2 text-sm"
             placeholder='{"id":"...","name":"...","docDefinition":{...}} or a docDefinition object'
           />
           <DialogFooter>
@@ -259,7 +270,7 @@ export function Header({
                 <div className="text-sm text-muted-foreground">Choose light or dark mode</div>
               </div>
               <select
-                className="h-8 rounded-md border bg-background px-2 text-sm"
+                className="h-8 rounded-md border border-input bg-background px-2 text-sm"
                 value={state.theme ?? 'light'}
                 onChange={(e) => dispatch({ type: 'SET_THEME', payload: e.target.value as Theme })}
               >

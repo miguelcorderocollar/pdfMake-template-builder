@@ -43,38 +43,46 @@ export function TableNodeItem({
   };
 
   return (
-    <div className="text-sm">
-      <div className="text-xs text-muted-foreground mb-2">Table</div>
-
-      <div className="flex items-center gap-2 mb-2">
-        <button className="h-7 px-2 rounded border text-xs" onClick={addRow}>Add Row</button>
-        <button className="h-7 px-2 rounded border text-xs" onClick={addCol}>Add Column</button>
+    <div className="text-sm space-y-3">
+      <div className="flex items-center gap-2">
+        <button className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors" onClick={addRow}>Add Row</button>
+        <button className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors" onClick={addCol}>Add Column</button>
       </div>
 
-      <div className="overflow-auto">
-        <table className="border-collapse">
+      <div className="overflow-auto rounded-md border">
+        <table className="border-collapse w-full">
           <tbody>
             {data.table.body.map((row, r) => (
-              <tr key={r}>
+              <tr key={r} className="border-b last:border-b-0">
                 {row.map((cell, c) => (
-                  <td key={c} className="border p-1">
+                  <td key={c} className="border-r last:border-r-0 p-1">
                     <input
-                      className="h-7 w-40 rounded border bg-background px-2 text-xs"
+                      className="h-8 w-40 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                       value={cell}
                       onChange={(e) => setCell(r, c, e.target.value)}
                     />
                   </td>
                 ))}
-                <td className="p-1">
-                  <button className="h-7 px-2 rounded border text-xs" onClick={() => removeRow(r)}>Remove</button>
+                <td className="p-1 bg-muted/30">
+                  <button 
+                    className="h-8 px-2 rounded border text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors" 
+                    onClick={() => removeRow(r)}
+                  >
+                    Remove
+                  </button>
                 </td>
               </tr>
             ))}
             {cols > 0 ? (
-              <tr>
+              <tr className="bg-muted/30">
                 {new Array(cols).fill(0).map((_, c) => (
-                  <td key={c} className="p-1 text-center">
-                    <button className="h-7 px-2 rounded border text-xs" onClick={() => removeCol(c)}>Remove</button>
+                  <td key={c} className="p-1 text-center border-r last:border-r-0">
+                    <button 
+                      className="h-8 px-2 rounded border text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors" 
+                      onClick={() => removeCol(c)}
+                    >
+                      Remove
+                    </button>
                   </td>
                 ))}
                 <td />
@@ -84,29 +92,32 @@ export function TableNodeItem({
         </table>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mt-3">
-        <label className="flex items-center gap-2">
-          <span className="w-20">headerRows</span>
-          <input
-            type="number"
-            className="h-7 w-20 rounded border bg-background px-2 text-xs"
-            value={data.table.headerRows ?? 0}
-            onChange={(e) => onChange({ table: { ...data.table, headerRows: e.target.value === "" ? undefined : Number(e.target.value) } })}
-          />
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="w-20">layout</span>
-          <select
-            className="h-7 rounded border bg-background px-2 text-xs"
-            value={data.layout ?? ""}
-            onChange={(e) => onChange({ layout: (e.target.value || undefined) as TableNode["layout"] })}
-          >
-            <option value="">(default)</option>
-            <option value="noBorders">noBorders</option>
-            <option value="headerLineOnly">headerLineOnly</option>
-            <option value="lightHorizontalLines">lightHorizontalLines</option>
-          </select>
-        </label>
+      <div className="p-3 rounded-md bg-muted/50 border space-y-3">
+        <div className="text-xs font-medium text-muted-foreground">Table Properties</div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Header Rows</span>
+            <input
+              type="number"
+              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              value={data.table.headerRows ?? 0}
+              onChange={(e) => onChange({ table: { ...data.table, headerRows: e.target.value === "" ? undefined : Number(e.target.value) } })}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Layout Style</span>
+            <select
+              className="h-8 rounded-md border border-input bg-background px-2 text-xs hover:bg-accent transition-colors"
+              value={data.layout ?? ""}
+              onChange={(e) => onChange({ layout: (e.target.value || undefined) as TableNode["layout"] })}
+            >
+              <option value="">(default)</option>
+              <option value="noBorders">noBorders</option>
+              <option value="headerLineOnly">headerLineOnly</option>
+              <option value="lightHorizontalLines">lightHorizontalLines</option>
+            </select>
+          </label>
+        </div>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export function DialogContent({ className, ...props }: React.ComponentPropsWitho
       <DialogPrimitive.Content
         {...props}
         className={[
-          "fixed z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-lg",
+          "fixed z-50 grid w-full max-w-lg gap-4 border border-border bg-background p-6 shadow-lg",
           "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
           "rounded-md",
           className ?? "",

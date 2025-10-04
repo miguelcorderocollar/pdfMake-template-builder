@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Canvas } from "@/components/layout/Canvas";
 import { PreviewPanel } from "./PreviewPanel";
+import { NodeOverviewPanel } from "./NodeOverviewPanel";
 import { useApp } from "@/lib/app-context";
 import { downloadPDF } from "@/services/pdf-service";
 
@@ -45,6 +46,11 @@ export function TemplateBuilder() {
         {/* Canvas Area (Phase 0 uses Content via Sidebar; keep Canvas for now, can replace) */}
         <div className="flex-1 flex flex-col">
           <Canvas />
+        </div>
+
+        {/* Node Overview Panel */}
+        <div className="w-80 border-l bg-card flex flex-col">
+          <NodeOverviewPanel />
         </div>
       </div>
 
