@@ -48,3 +48,10 @@ export function hasCustomFlag(item: DocContentItem): boolean {
   return typeof item === 'object' && item !== null && '_custom' in (item as Record<string, unknown>);
 }
 
+/**
+ * Check if a text value is a TextSpan array (for rich text)
+ */
+export function isTextSpanArray(text: string | import("@/types").TextSpan[]): text is import("@/types").TextSpan[] {
+  return Array.isArray(text);
+}
+

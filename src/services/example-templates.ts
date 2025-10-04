@@ -146,6 +146,41 @@ export const demoTemplate: DocDefinition = {
       margin: [0, 0, 0, 20]
     },
     {
+      text: 'Rich Text & Inline Styling',
+      style: 'subheader',
+      margin: [0, 0, 0, 15],
+      _name: 'Rich Text Section'
+    },
+    {
+      text: 'You can now create rich text with inline styles! Try switching a text node to "Rich Text" mode to mix different styles within a single paragraph.',
+      margin: [0, 0, 0, 10]
+    },
+    {
+      text: [
+        'This paragraph uses ',
+        { text: 'bold text', bold: true },
+        ', ',
+        { text: 'italic text', italics: true },
+        ', ',
+        { text: 'colored text', color: '#dc2626' },
+        ', and ',
+        { text: 'large text', fontSize: 16 },
+        ' all in one line!'
+      ],
+      margin: [0, 0, 0, 10],
+      _name: 'Rich Text Demo'
+    },
+    {
+      text: [
+        'You can even combine ',
+        { text: 'bold and italic', bold: true, italics: true },
+        ' or use ',
+        { text: 'style references', style: 'subheader' },
+        ' alongside inline styles.'
+      ],
+      margin: [0, 0, 0, 20]
+    },
+    {
       text: 'Test Header/Footer',
       style: 'header',
       pageBreak: 'before'

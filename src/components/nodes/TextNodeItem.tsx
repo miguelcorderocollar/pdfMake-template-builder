@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { RichTextEditor } from "./RichTextEditor";
+import type { TextSpan } from "@/types";
+import { isTextSpanArray } from "@/utils/node-type-guards";
 
 export function TextNodeItem({
 	text,
@@ -10,25 +13,63 @@ export function TextNodeItem({
 	onChangeStyle,
 	onUpdateStyleDef,
 }: {
-	text: string;
+	text: string | TextSpan[];
 	styleName?: string;
-	onChangeText: (t: string) => void;
+	onChangeText: (t: string | TextSpan[]) => void;
 	styles?: Record<string, { fontSize?: number; bold?: boolean; italics?: boolean }>;
 	onChangeStyle: (name: string | undefined) => void;
 	onUpdateStyleDef: (name: string, def: Partial<{ fontSize?: number; bold?: boolean; italics?: boolean }>) => void;
 }) {
 	const [editing, setEditing] = useState(false);
-	const [draft, setDraft] = useState(text);
+	const [draft, setDraft] = useState(typeof text === "string" ? text : "");
 	const [showStyleEditor, setShowStyleEditor] = useState(false);
+	const [mode, setMode] = useState<"simple" | "rich">(isTextSpanArray(text) ? "rich" : "simple");
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 
-	useEffect(() => { setDraft(text); }, [text]);
+	useEffect(() => {
+		if (typeof text === "string") {
+			setDraft(text);
+			setMode("simple");
+		} else {
+			setMode("rich");
+		}
+	}, [text]);
+
 	useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
 
 	const currentDef = styleName && styles ? styles[styleName] : undefined;
 
+	const convertToRich = () => {
+		const currentText = typeof text === "string" ? text : "";
+		onChangeText([currentText]);
+		setMode("rich");
+	};
+
+	const convertToSimple = () => {
+		if (isTextSpanArray(text)) {
+			// Flatten all spans into a single string
+			const combined = text.map(span => typeof span === "string" ? span : span.text).join("");
+			onChangeText(combined);
+			setMode("simple");
+		}
+	};
+
 	return (
 		<div className="text-sm space-y-3">
+			{/* Mode toggle */}
+			<div className="flex items-center justify-between gap-2">
+				<div className="flex items-center gap-2">
+					<label className="text-xs text-muted-foreground">Mode:</label>
+					<button
+						onClick={mode === "simple" ? convertToRich : convertToSimple}
+						className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors"
+						title={mode === "simple" ? "Switch to rich text mode" : "Switch to simple text mode"}
+					>
+						{mode === "simple" ? "Simple Text" : "Rich Text"} ↔
+					</button>
+				</div>
+			</div>
+
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<label className="text-xs text-muted-foreground">Style:</label>
@@ -53,20 +94,30 @@ export function TextNodeItem({
 				</button>
 			</div>
 
-			{editing ? (
-				<textarea
-					ref={inputRef}
-					className="w-full resize-y rounded-md border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-					rows={3}
-					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
-					onBlur={() => { setEditing(false); onChangeText(draft); }}
-					onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { setEditing(false); onChangeText(draft); } if (e.key === 'Escape') { setEditing(false); } }}
+			{mode === "rich" && isTextSpanArray(text) ? (
+				<RichTextEditor
+					spans={text}
+					onChange={onChangeText}
+					styles={styles}
 				/>
 			) : (
-				<div className="whitespace-pre-wrap break-words cursor-text p-3 rounded-md hover:bg-accent/50 transition-colors min-h-[3rem] flex items-center" onClick={() => setEditing(true)}>
-					{text || <span className="text-muted-foreground italic">Click to edit text...</span>}
-				</div>
+				<>
+					{editing ? (
+						<textarea
+							ref={inputRef}
+							className="w-full resize-y rounded-md border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+							rows={3}
+							value={draft}
+							onChange={(e) => setDraft(e.target.value)}
+							onBlur={() => { setEditing(false); onChangeText(draft); }}
+							onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { setEditing(false); onChangeText(draft); } if (e.key === 'Escape') { setEditing(false); } }}
+						/>
+					) : (
+						<div className="whitespace-pre-wrap break-words cursor-text p-3 rounded-md hover:bg-accent/50 transition-colors min-h-[3rem] flex items-center" onClick={() => setEditing(true)}>
+							{(typeof text === "string" ? text : "") || <span className="text-muted-foreground italic">Click to edit text...</span>}
+						</div>
+					)}
+				</>
 			)}
 
 			{showStyleEditor && styleName && (

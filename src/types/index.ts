@@ -44,7 +44,25 @@ export type PdfStyle = {
   decorationColor?: string;
 };
 
-export type TextNode = { text: string; style?: string | string[]; _name?: string };
+// TextSpan represents inline text with optional styling
+export type TextSpan = string | {
+  text: string;
+  style?: string | string[];
+  bold?: boolean;
+  italics?: boolean;
+  fontSize?: number;
+  color?: string;
+  decoration?: 'underline' | 'lineThrough' | 'overline' | Array<'underline' | 'lineThrough' | 'overline'>;
+  decorationStyle?: 'dashed' | 'dotted' | 'double' | 'wavy';
+  decorationColor?: string;
+  background?: string;
+};
+
+export type TextNode = {
+  text: string | TextSpan[];
+  style?: string | string[];
+  _name?: string;
+};
 
 export type ImageNode = {
   image: string; // data URL or URL
@@ -198,13 +216,13 @@ export type AppAction =
   | { type: 'SET_TEMPLATE_NAME'; payload: string }
   | { type: 'CONTENT_OP'; payload:
       | { type: 'ADD_STRING'; payload: { index?: number; value: string } }
-      | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string; style?: string | string[] } }
+      | { type: 'ADD_TEXT_NODE'; payload: { index?: number; text: string | TextSpan[]; style?: string | string[] } }
       | { type: 'ADD_IMAGE_NODE'; payload: { index?: number } & ImageNode }
       | { type: 'ADD_LIST_NODE'; payload: { index?: number } & ListNode }
       | { type: 'ADD_TABLE_NODE'; payload: { index?: number } & TableNode }
       | { type: 'ADD_CUSTOM_NODE'; payload: { index?: number; content: unknown } }
       | { type: 'UPDATE_STRING'; payload: { index: number; value: string } }
-      | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[]; _name?: string } }
+      | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string | TextSpan[]; style?: string | string[]; _name?: string } }
       | { type: 'UPDATE_IMAGE_NODE'; payload: { index: number } & Partial<ImageNode> }
       | { type: 'UPDATE_LIST_NODE'; payload: { index: number } & (Partial<UnorderedListNode> | Partial<OrderedListNode>) }
       | { type: 'UPDATE_TABLE_NODE'; payload: { index: number } & Partial<TableNode> }

@@ -89,8 +89,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         }
         case 'UPDATE_TEXT_NODE': {
           const item = content[op.payload.index];
-          if (item && typeof item === 'object' && 'text' in (item as { text: string })) {
-            const next = { ...(item as { text: string; style?: string | string[]; _name?: string }) };
+          if (item && typeof item === 'object' && 'text' in (item as { text: string | import("@/types").TextSpan[] })) {
+            const next = { ...(item as { text: string | import("@/types").TextSpan[]; style?: string | string[]; _name?: string }) };
             if (op.payload.text !== undefined) next.text = op.payload.text;
             if (op.payload.style !== undefined) next.style = op.payload.style;
             if (op.payload._name !== undefined) next._name = op.payload._name;
