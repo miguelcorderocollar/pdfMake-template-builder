@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown, Trash } from "lucide-react";
+import { SiGithub } from "react-icons/si";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
 import type { Theme } from "@/types";
@@ -234,6 +235,15 @@ export function Header({
 
           <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="Settings">
             <Settings className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+          </Button>
+          <Button asChild variant="ghost" size="icon" aria-label="Open GitHub repository">
+            <a
+              href="https://github.com/miguelcorderocollar/pdfMake-template-builder"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiGithub className="h-4 w-4" />
+            </a>
           </Button>
         </div>
       </div>

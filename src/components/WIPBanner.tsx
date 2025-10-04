@@ -41,7 +41,17 @@ export function WIPBanner() {
       </AlertTitle>
       <AlertDescription className="text-slate-800 dark:text-slate-100">
         Welcome to the PDFMake Template Builder! This tool is currently in active development.
+        <br />
         We're continuously adding new features and improvements. Feel free to explore and provide feedback!
+        <br />
+        <a
+          href="https://github.com/miguelcorderocollar/pdfMake-template-builder"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium underline underline-offset-4 hover:opacity-90"
+        >
+          View on GitHub
+        </a>
       </AlertDescription>
     </Alert>
   );
