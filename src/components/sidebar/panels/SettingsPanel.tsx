@@ -120,7 +120,6 @@ export function SettingsPanel() {
   }
 
   function updateHeader() {
-    const d = ddStable as DocDefinition;
     const toUpdate: Partial<DocDefinition> = {};
     if (headerMode === 'static') {
       if (headerContent.trim()) {
@@ -158,7 +157,6 @@ export function SettingsPanel() {
   }
 
   function updateFooter() {
-    const d = ddStable as DocDefinition;
     const toUpdate: Partial<DocDefinition> = {};
     if (footerMode === 'static') {
       if (footerContent.trim()) {

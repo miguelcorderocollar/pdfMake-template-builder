@@ -19,12 +19,20 @@ export function useLocalStoragePersistence(
       const savedFilename = window.localStorage.getItem('filename');
 
       if (savedTemplates) {
-        const serializedTemplates: any[] = JSON.parse(savedTemplates);
+        const serializedTemplates: Array<{
+          id: string;
+          name: string;
+          docDefinition: unknown;
+          createdAt: string | Date;
+          updatedAt: string | Date;
+        }> = JSON.parse(savedTemplates);
         if (Array.isArray(serializedTemplates) && serializedTemplates.length > 0) {
           // Deserialize templates with function restoration
           const templates: Template[] = serializedTemplates.map(st => ({
             ...st,
-            docDefinition: deserializeDocDefinition(st.docDefinition)
+            createdAt: typeof st.createdAt === 'string' ? new Date(st.createdAt) : st.createdAt,
+            updatedAt: typeof st.updatedAt === 'string' ? new Date(st.updatedAt) : st.updatedAt,
+            docDefinition: deserializeDocDefinition(st.docDefinition as Record<string, unknown>)
           }));
           const byId = new Map(templates.map(t => [t.id, t] as const));
           const current = savedCurrentId ? byId.get(savedCurrentId) ?? templates[0] : templates[0];

@@ -87,7 +87,7 @@ export function UnknownNodeEditor({ index, value }: UnknownNodeEditorProps) {
       setIsDirty(true);
       setError(null);
       setStatus('JSON tidied');
-    } catch (e) {
+    } catch {
       setError('Cannot tidy invalid JSON');
     }
   };

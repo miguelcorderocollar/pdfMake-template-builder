@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { Template } from "@/types";
 import { useApp } from "@/lib/app-context";
 import {
@@ -14,7 +14,7 @@ import {
  */
 export function useTemplateManagement() {
   const { state, dispatch } = useApp();
-  const templates = state.templates ?? [];
+  const templates = useMemo(() => state.templates ?? [], [state.templates]);
   const currentTemplate = state.currentTemplate;
 
   /**

@@ -48,7 +48,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const serialized = JSON.stringify(content);
       if (lastContentRef.current !== serialized) {
         lastContentRef.current = serialized;
-        // eslint-disable-next-line no-console
         console.log('[pdfMake] docDefinition (content updated):', state.currentTemplate.docDefinition);
       }
     } catch {}
