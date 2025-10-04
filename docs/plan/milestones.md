@@ -5,17 +5,17 @@ Source of truth: derived from `docs/plan/development-plan.md`, `technical-spec.m
 Status keys: ✅ Completed · ⏳ In Progress · ⭕ Pending
 
 ## Milestone 0: Flow-first MVP (styles-simple default)
-- ⭕ Load default example `styles-simple.js` at startup
-- ⭕ ContentList: add/edit/insert/move/delete with confirmation
-- ⭕ StylesPanel: edit fontSize/bold/italics, apply to items
-- ⭕ Clear Template confirmation action
+- ✅ Load default example `styles-simple.js` at startup
+- ✅ ContentList: add/edit/insert/move/delete with confirmation
+- ✅ StylesPanel: edit fontSize/bold/italics, apply to items
+- ✅ Clear Template confirmation action
 - ⭕ Debounced pdfMake preview updates
 
 Verification
-- ⭕ Default example visible on load
-- ⭕ Content edits reflected in preview
-- ⭕ Styles edits applied and reflected
-- ⭕ Clear resets content/styles
+- ✅ Default example visible on load
+- ✅ Content edits reflected in preview
+- ✅ Styles edits applied and reflected
+- ✅ Clear resets content/styles
 
 ## Milestone 1: Project Setup & Foundation
 - ✅ Initialize Next.js 15+ project with TypeScript (Bun)
@@ -45,8 +45,8 @@ Verification
 - ✅ Can copy JSON template to clipboard
 
 ## Milestone 3: Core UI Components
-- ⭕ Header: actions (Save, Export, Preview, Import), settings menu
-- ⭕ Sidebar: tabs (Elements, Styles, Templates), element palette (Text/Table/Image/List/Columns)
+- ✅ Header: actions (Save, Export, Preview, Import), settings menu
+- ✅ Sidebar: tabs (Elements, Styles, Templates), element palette (Text/Table/Image/List/Custom)
 - ⭕ Canvas: drop zones, selection/hover states
 - ⭕ Properties Panel: basic controls, real-time updates, validation, tooltips, help
 
@@ -61,7 +61,7 @@ Verification
 - ⭕ Undo/redo integration
 
 ## Milestone 6: Template Management
-- ⭕ Local storage persistence, auto-save, versioning
+- ✅ Local storage persistence, auto-save, versioning
 - ⭕ Import/Export JSON; load examples from `docs/examples/`
 
 ## Milestone 7: PDF Preview System

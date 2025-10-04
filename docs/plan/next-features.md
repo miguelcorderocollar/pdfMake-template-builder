@@ -38,59 +38,63 @@ This document sketches the next wave of capabilities for the pdfMake Template Bu
 - How to deduplicate nodes when “reusing” existing content? (Copy vs. reference.)
 - Should we constrain the maximum nesting depth for MVP?
 
-## 2. Rich Text & Stack Editor
+## 2. Rich Text & Stack Editor ⏳ Partially Implemented
 
 **Goal:** Support inline spans, `stack` nodes, and style arrays so users can mix typography within a paragraph, matching `docs/examples/styles.js`.
 
-**Motivation & Current Gaps**
-- Current Text node editor only edits a single `text` string with optional style reference.
-- We cannot author inline overrides (e.g., `{ text: ["prefix", { text: "Bold", bold: true }] }`).
+**Implementation Status**
+- ✅ Text node editor supports both simple strings and rich text spans
+- ✅ Rich text spans with inline formatting (bold, italics, font size, color)
+- ✅ Span toolbar with formatting controls
+- ⭕ Stack nodes not yet implemented
+- ⭕ Converting paragraphs to stacks not implemented
 
-**User Experience Notes**
-- Upgrade `TextNodeItem` to a mini block editor:
-  - Represent content as a list of spans (plain text, styled text, dynamic value placeholder later).
-  - Provide toolbar buttons for bold/italics/color/size overrides and style chips.
-- Allow converting a paragraph into a `stack`, enabling multiple paragraphs inside a single column.
-- Show preview of combined styles (ordered precedence consistent with pdfMake).
+**Current Capabilities**
+- TextNodeItem supports switching between simple text and rich text modes
+- Rich text spans with individual formatting properties (bold, italics, fontSize, color)
+- SpanToolbar provides formatting controls for each span
+- SpanPreview shows formatted text
+
+**Still Needed**
+- Stack node support for grouping multiple paragraphs
+- Converting existing paragraphs to stack nodes
+- Enhanced span editing with style precedence visualization
 
 **Data Model & pdfMake Mapping**
-- Extend `TextNode` to support either `string` or `Array<TextSpan>` with `TextSpan = string | { text: string; style?: string | string[]; bold?: boolean; italics?: boolean; fontSize?: number; color?: string; }`.
-- Introduce `StackNode = { stack: DocContentItem[]; style?: string | string[]; }` and add to union.
-- Update reducers and serialization to keep nested arrays consistent.
+- ✅ Extended `TextNode` to support `string | Array<TextSpan>`
+- ✅ TextSpan type supports inline formatting properties
+- ⭕ StackNode not yet implemented
 
 **Dependencies & Sequencing**
-- Relies on style rename/update pathways already in place (Milestone 0 accomplished this).
-- Works best after we create shared validation utilities (Milestone 7 tasks). Schedule after Column Builder so both can share nested editing patterns.
+- Style system integration working (Milestone 0 accomplished)
+- Can work alongside Column Builder development
 
 **Open Questions**
 - Should inline editor support undo/redo locally before global undo exists?
 - How to display inline comment/help for precedence of multiple styles?
 
-## 3. Header & Footer Designer
+## 3. Header & Footer Designer ✅ Implemented
 
 **Goal:** Provide UI for static and dynamic headers/footers, covering both simple strings and functions similar to `docs/pdfMake-docs.md` examples.
 
-**Motivation & Current Gaps**
-- Document settings currently expose fields like watermark and metadata, but header/footer require manual JSON editing.
-- Most serious pdfMake templates rely on page numbers and company banners.
-
-**User Experience Notes**
-- Add a “Headers & Footers” tab (or section within Settings panel) with two modes per area:
-  - **Static**: text/columns image, using same editors as normal content.
-  - **Dynamic**: guided builder for `function (currentPage, pageCount, pageSize) { ... }` patterns. Provide tokens for `[page]`, `[pageCount]`, etc., that compile into a function.
-- Allow previewing header/footer in Preview Panel (overlay sample page numbers).
+**Implementation Status**
+- ✅ Add a "Headers & Footers" section within Settings panel with two modes per area:
+  - **Static**: text/columns JSON, with textarea input for JSON structures
+  - **Dynamic**: function builder for `function (currentPage, pageCount, pageSize) { ... }` patterns with textarea for function code
+- ✅ Allow editing header/footer with real-time updates to Preview Panel
+- ✅ Support both static content (JSON) and dynamic functions
 
 **Data Model & pdfMake Mapping**
-- Extend `DocDefinition` editing functions to set `header` and `footer` either as `string | DocContentItem | DocContentItem[]` or generator functions. For the latter, store DSL representation in state and compile to JS when exporting/downloading.
-- Introduce serializer that turns builder selections into proper functions while keeping them editable.
+- ✅ Extend `DocDefinition` editing functions to set `header` and `footer` either as `string | DocContentItem | DocContentItem[]` or generator functions
+- ✅ Function compilation from string code using `new Function()`
 
 **Dependencies & Sequencing**
-- Depends on Rich Text/Stack Editor to render more complex header/footer content.
-- Should land before pagination tooling so the header/footer DSL can piggy-back on the same token system.
+- Implemented independently, can work with Rich Text/Stack Editor when available
+- Function DSL can be extended for pagination tooling
 
-**Open Questions**
-- How to store user-authored function safely (stringified code vs. structured object)?
-- Do we need guardrails for accessing `pageSize` fields (width/height) in UI?
+**Notes**
+- Functions are stored as stringified code and compiled at runtime
+- Basic guardrails exist (try/catch error handling)
 
 ## 4. Table Spans & Layout Controls
 
