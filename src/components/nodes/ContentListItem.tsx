@@ -33,7 +33,7 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 	};
 
 	// Get node information
-	const nodeTypeInfo = getNodeTypeInfo(item, true);
+	const nodeTypeInfo = getNodeTypeInfo(item);
 	const NodeIcon = nodeTypeInfo.icon;
 	const customName = getNodeCustomName(item);
 	const displayName = getNodeDisplayName(item, index);

@@ -20,7 +20,7 @@ export interface NodeTypeInfo {
 /**
  * Get node type info by type name - SINGLE SOURCE OF TRUTH for node type styling
  */
-export function getNodeTypeInfoByName(typeName: 'paragraph' | 'text' | 'image' | 'list' | 'table' | 'unknown', includeBorder = false): NodeTypeInfo {
+export function getNodeTypeInfoByName(typeName: 'paragraph' | 'text' | 'image' | 'list' | 'table' | 'unknown'): NodeTypeInfo {
   let info: NodeTypeInfo;
   
   switch (typeName) {
@@ -81,7 +81,7 @@ export function getNodeTypeInfoByName(typeName: 'paragraph' | 'text' | 'image' |
 /**
  * Get visual information about a node type from an actual content item
  */
-export function getNodeTypeInfo(item: DocContentItem, includeBorder = false): NodeTypeInfo {
+export function getNodeTypeInfo(item: DocContentItem): NodeTypeInfo {
   let typeName: 'paragraph' | 'text' | 'image' | 'list' | 'table' | 'unknown';
 
   if (typeof item === 'string') {
@@ -100,7 +100,7 @@ export function getNodeTypeInfo(item: DocContentItem, includeBorder = false): No
     typeName = 'unknown';
   }
 
-  return getNodeTypeInfoByName(typeName, includeBorder);
+  return getNodeTypeInfoByName(typeName);
 }
 
 /**

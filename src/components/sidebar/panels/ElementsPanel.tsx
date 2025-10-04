@@ -8,12 +8,12 @@ export function ElementsPanel() {
   const { dispatch } = useApp();
   
   // Get type info for each node type (with border colors)
-  const paragraphInfo = getNodeTypeInfoByName('paragraph', true);
-  const textInfo = getNodeTypeInfoByName('text', true);
-  const imageInfo = getNodeTypeInfoByName('image', true);
-  const listInfo = getNodeTypeInfoByName('list', true);
-  const tableInfo = getNodeTypeInfoByName('table', true);
-  const unknownInfo = getNodeTypeInfoByName('unknown', true);
+  const paragraphInfo = getNodeTypeInfoByName('paragraph');
+  const textInfo = getNodeTypeInfoByName('text');
+  const imageInfo = getNodeTypeInfoByName('image');
+  const listInfo = getNodeTypeInfoByName('list');
+  const tableInfo = getNodeTypeInfoByName('table');
+  const unknownInfo = getNodeTypeInfoByName('unknown');
   const ParagraphIcon = paragraphInfo.icon;
   const TextIcon = textInfo.icon;
   const ImageIcon = imageInfo.icon;
