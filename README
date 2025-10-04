@@ -78,6 +78,10 @@ See `docs/` for detailed documentation:
 - `docs/examples/` - pdfMake example templates
 - `docs/pdfMake-docs.md` - Complete pdfMake reference
 
+### Official pdfmake Resources
+- Docs: https://pdfmake.github.io/docs/
+- Playground: http://pdfmake.org/playground.html
+
 ## Contributing
 
 1. Read the docs in `docs/plan/`
