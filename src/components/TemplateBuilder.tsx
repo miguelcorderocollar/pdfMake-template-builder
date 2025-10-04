@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Canvas } from "@/components/layout/Canvas";
 import { PreviewPanel } from "./PreviewPanel";
 import { NodeOverviewPanel } from "./NodeOverviewPanel";
+import { WIPBanner } from "./WIPBanner";
 import { useApp } from "@/lib/app-context";
 import { downloadPDF } from "@/services/pdf-service";
 
@@ -37,6 +38,11 @@ export function TemplateBuilder() {
         onPreview={handlePreview}
         onExportPDF={handleExportPDF}
       />
+
+      {/* WIP Banner */}
+      <div className="px-4 pt-4">
+        <WIPBanner />
+      </div>
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
