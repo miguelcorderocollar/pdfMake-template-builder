@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowDown, ArrowUp, Trash2, Plus, Pencil } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { ArrowDown, ArrowUp, Trash2, Plus, Pencil, Edit3, Save, X } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +11,12 @@ import { ImageNodeItem } from "@/components/nodes/ImageNodeItem";
 import { ListNodeItem } from "@/components/nodes/ListNodeItem";
 import { TableNodeItem } from "@/components/nodes/TableNodeItem";
 import { UnknownNodeEditor } from "@/components/nodes/UnknownNodeEditor";
+import { ParagraphPreview } from "@/components/nodes/previews/ParagraphPreview";
+import { TextNodePreview } from "@/components/nodes/previews/TextNodePreview";
+import { ImageNodePreview } from "@/components/nodes/previews/ImageNodePreview";
+import { ListNodePreview } from "@/components/nodes/previews/ListNodePreview";
+import { TableNodePreview } from "@/components/nodes/previews/TableNodePreview";
+import { UnknownNodePreview } from "@/components/nodes/previews/UnknownNodePreview";
 import type { DocContentItem } from "@/types";
 import { isImageNode, isTextNode, isListNode, isTableNode, hasCustomFlag } from "@/utils/node-type-guards";
 import { getNodeTypeInfo, getNodeCustomName, getNodeDisplayName, supportsCustomName } from "@/utils/node-info";
@@ -20,17 +26,52 @@ import { useInlineEdit } from "@/hooks/use-inline-edit";
 export function ContentListItem({ index, item }: { index: number; item: DocContentItem }) {
 	const { state, dispatch } = useApp();
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [draftItem, setDraftItem] = useState<DocContentItem>(item);
+
+	// Sync draft item when prop item changes (when not editing)
+	useEffect(() => {
+		if (!isEditing) {
+			setDraftItem(item);
+		}
+	}, [item, isEditing]);
 
 	// Use custom hook for inline editing
 	const inlineEdit = useInlineEdit();
 
-	const handleDelete = () => {
+	const handleDelete = useCallback(() => {
 		setDeleteConfirmOpen(true);
-	};
+	}, []);
 
-	const handleConfirmDelete = () => {
+	const handleConfirmDelete = useCallback(() => {
 		dispatch({ type: 'CONTENT_OP', payload: { type: 'DELETE_ITEM', payload: { index } } });
-	};
+	}, [dispatch, index]);
+
+	const handleEdit = useCallback(() => {
+		setDraftItem(item); // Reset draft to current item
+		setIsEditing(true);
+	}, [item]);
+
+	const handleSave = useCallback(() => {
+		// Dispatch the changes based on node type
+		if (typeof draftItem === 'string') {
+			dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_STRING', payload: { index, value: draftItem } } });
+		} else if (isImageNode(draftItem)) {
+			dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_IMAGE_NODE', payload: { index, ...draftItem } } });
+		} else if (isListNode(draftItem)) {
+			dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_LIST_NODE', payload: { index, ...(draftItem as Partial<import("@/types").UnorderedListNode> | Partial<import("@/types").OrderedListNode>) } } });
+		} else if (isTableNode(draftItem)) {
+			dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TABLE_NODE', payload: { index, ...(draftItem as Partial<import("@/types").TableNode>) } } });
+		} else if (isTextNode(draftItem)) {
+			dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TEXT_NODE', payload: { index, text: draftItem.text, style: draftItem.style } } });
+		}
+		setIsEditing(false);
+	}, [dispatch, index, draftItem]);
+
+	const handleCancel = useCallback(() => {
+		setDraftItem(item); // Reset draft
+		setIsEditing(false);
+	}, [item]);
 
 	// Get node information
 	const nodeTypeInfo = getNodeTypeInfo(item);
@@ -53,10 +94,10 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 		}
 	};
 
-	return (<>
-		<div className={`group rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow border-l-4 ${nodeTypeInfo.borderColor}`} data-content-index={index}>
-			<div className={"flex items-start gap-3 p-3 border-b bg-muted/30"}>
-				<TooltipProvider>
+	return (
+		<TooltipProvider>
+			<div className={`group rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow border-l-4 ${nodeTypeInfo.borderColor}`} data-content-index={index}>
+				<div className={"flex items-start gap-3 p-3 border-b bg-muted/30"}>
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div className="flex flex-col items-center gap-1">
@@ -68,7 +109,6 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 							<p>{nodeTypeInfo.label}</p>
 						</TooltipContent>
 					</Tooltip>
-				</TooltipProvider>
 				
 				<div className="flex items-center gap-1 flex-1 min-w-0 group/name">
 					{inlineEdit.isEditing ? (
@@ -107,137 +147,198 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 				</div>
 				
 				<div className="flex items-center gap-1">
-					<TooltipProvider>
+					{isEditing ? (
+						<>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<button
+										className="h-8 px-3 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+										onClick={handleSave}
+									>
+										<Save className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+										<span className="text-xs font-medium">Save</span>
+									</button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Save changes</p>
+								</TooltipContent>
+							</Tooltip>
+							
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<button
+										className="h-8 px-3 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+										onClick={handleCancel}
+									>
+										<X className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+										<span className="text-xs font-medium">Cancel</span>
+									</button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Discard changes</p>
+								</TooltipContent>
+							</Tooltip>
+						</>
+					) : (
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<button
-									className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-									onClick={() => index > 0 && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index - 1 } } })}
-									disabled={index === 0}
+									className="h-8 px-3 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+									onClick={handleEdit}
 								>
-									<ArrowUp className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+									<Edit3 className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+									<span className="text-xs font-medium">Edit</span>
 								</button>
 							</TooltipTrigger>
 							<TooltipContent>
-								<p>Move up</p>
+								<p>Edit this item</p>
 							</TooltipContent>
 						</Tooltip>
-					</TooltipProvider>
-					
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<button
-									className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-									onClick={() => index < (state.currentTemplate!.docDefinition.content.length - 1) && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index + 1 } } })}
-									disabled={index >= state.currentTemplate!.docDefinition.content.length - 1}
-								>
-									<ArrowDown className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
-								</button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Move down</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+					)}
 					
 					<div className="w-px h-6 bg-border mx-1" />
 					
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<button
-									className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-									onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_STRING', payload: { index, value: 'New paragraph' } } })}
-								>
-									<Plus className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
-								</button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Insert new item above</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								onClick={() => index > 0 && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index - 1 } } })}
+								disabled={index === 0 || isEditing}
+							>
+								<ArrowUp className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Move up</p>
+						</TooltipContent>
+					</Tooltip>
 					
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<button
-									className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-destructive hover:text-destructive-foreground transition-colors"
-									onClick={handleDelete}
-								>
-									<Trash2 className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
-								</button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Delete item</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								onClick={() => index < (state.currentTemplate!.docDefinition.content.length - 1) && dispatch({ type: 'CONTENT_OP', payload: { type: 'MOVE_ITEM', payload: { from: index, to: index + 1 } } })}
+								disabled={index >= state.currentTemplate!.docDefinition.content.length - 1 || isEditing}
+							>
+								<ArrowDown className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Move down</p>
+						</TooltipContent>
+					</Tooltip>
+					
+					<div className="w-px h-6 bg-border mx-1" />
+					
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_STRING', payload: { index, value: 'New paragraph' } } })}
+								disabled={isEditing}
+							>
+								<Plus className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Insert new item above</p>
+						</TooltipContent>
+					</Tooltip>
+					
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								onClick={handleDelete}
+								disabled={isEditing}
+							>
+								<Trash2 className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Delete item</p>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
-			<div className="p-4">
-				{typeof item === 'string' ? (
-					<ParagraphItem
-						value={item}
-						onChange={(value) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_STRING', payload: { index, value } } })
-						}
-					/>
-				) : hasCustomFlag(item) ? (
-					<UnknownNodeEditor index={index} value={item} />
-				) : isImageNode(item) ? (
-					<ImageNodeItem
-						data={item}
-						onChange={(next) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_IMAGE_NODE', payload: { index, ...next } } })
-						}
-					/>
-				) : isListNode(item) ? (
-					<ListNodeItem
-						data={item as unknown as import("@/types").ListNode}
-						onChange={(next) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_LIST_NODE', payload: { index, ...(next as Partial<import("@/types").UnorderedListNode> | Partial<import("@/types").OrderedListNode>) } } })
-						}
-					/>
-				) : isTableNode(item) ? (
-					<TableNodeItem
-						data={item as unknown as import("@/types").TableNode}
-						onChange={(next) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TABLE_NODE', payload: { index, ...(next as Partial<import("@/types").TableNode>) } } })
-						}
-					/>
-				) : isTextNode(item) ? (
-					<TextNodeItem
-						text={item.text}
-						styleName={Array.isArray(item.style) ? item.style.join(', ') : item.style}
-						styles={state.currentTemplate?.docDefinition.styles}
-						onChangeText={(text) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TEXT_NODE', payload: { index, text } } })
-						}
-						onChangeStyle={(name) =>
-							dispatch({ type: 'CONTENT_OP', payload: { type: 'UPDATE_TEXT_NODE', payload: { index, style: name } } })
-						}
-						onUpdateStyleDef={(name, def) =>
-							dispatch({ type: 'STYLES_OP', payload: { type: 'UPDATE_STYLE', payload: { name, def } } })
-						}
-					/>
+			<div 
+				className={`p-4 ${!isEditing ? 'cursor-pointer hover:bg-accent/10 transition-colors' : ''}`}
+				onDoubleClick={() => !isEditing && handleEdit()}
+				title={!isEditing ? "Double-click to edit" : undefined}
+			>
+				{isEditing ? (
+					// Edit Mode - Full editors
+					typeof draftItem === 'string' ? (
+						<ParagraphItem
+							value={draftItem}
+							onChange={(value) => setDraftItem(value)}
+						/>
+					) : hasCustomFlag(draftItem) ? (
+						<UnknownNodeEditor index={index} value={draftItem} />
+					) : isImageNode(draftItem) ? (
+						<ImageNodeItem
+							data={draftItem}
+							onChange={(next) => setDraftItem({ ...draftItem, ...next })}
+						/>
+					) : isListNode(draftItem) ? (
+						<ListNodeItem
+							data={draftItem as unknown as import("@/types").ListNode}
+							onChange={(next) => setDraftItem({ ...draftItem, ...next })}
+						/>
+					) : isTableNode(draftItem) ? (
+						<TableNodeItem
+							data={draftItem as unknown as import("@/types").TableNode}
+							onChange={(next) => setDraftItem({ ...draftItem, ...next })}
+						/>
+					) : isTextNode(draftItem) ? (
+						<TextNodeItem
+							text={draftItem.text}
+							styleName={Array.isArray(draftItem.style) ? draftItem.style.join(', ') : draftItem.style}
+							styles={state.currentTemplate?.docDefinition.styles}
+							onChangeText={(text) => setDraftItem({ ...draftItem, text })}
+							onChangeStyle={(name) => setDraftItem({ ...draftItem, style: name })}
+							onUpdateStyleDef={(name, def) =>
+								dispatch({ type: 'STYLES_OP', payload: { type: 'UPDATE_STYLE', payload: { name, def } } })
+							}
+						/>
+					) : (
+						<UnknownNodeEditor index={index} value={draftItem} />
+					)
 				) : (
-					<UnknownNodeEditor index={index} value={item} />
+					// Preview Mode - Compact view
+					typeof item === 'string' ? (
+						<ParagraphPreview value={item} />
+					) : hasCustomFlag(item) ? (
+						<UnknownNodePreview value={item} />
+					) : isImageNode(item) ? (
+						<ImageNodePreview data={item} />
+					) : isListNode(item) ? (
+						<ListNodePreview data={item as unknown as import("@/types").ListNode} />
+					) : isTableNode(item) ? (
+						<TableNodePreview data={item as unknown as import("@/types").TableNode} />
+					) : isTextNode(item) ? (
+						<TextNodePreview 
+							text={item.text} 
+							styleName={Array.isArray(item.style) ? item.style.join(', ') : item.style}
+						/>
+					) : (
+						<UnknownNodePreview value={item} />
+					)
 				)}
 			</div>
+			
+			{/* Delete Confirmation Modal */}
+			<ConfirmationModal
+				open={deleteConfirmOpen}
+				onOpenChange={setDeleteConfirmOpen}
+				title="Delete Item"
+				description="Are you sure you want to delete this item? This action cannot be undone."
+				confirmText="Delete"
+				cancelText="Cancel"
+				onConfirm={handleConfirmDelete}
+				variant="destructive"
+			/>
 		</div>
-
-		{/* Delete Confirmation Modal */}
-		<ConfirmationModal
-			open={deleteConfirmOpen}
-			onOpenChange={setDeleteConfirmOpen}
-			title="Delete Item"
-			description="Are you sure you want to delete this item? This action cannot be undone."
-			confirmText="Delete"
-			cancelText="Cancel"
-			onConfirm={handleConfirmDelete}
-			variant="destructive"
-		/>
-	</>);
+		</TooltipProvider>
+	);
 }
