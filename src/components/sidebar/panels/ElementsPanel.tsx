@@ -44,6 +44,13 @@ export function ElementsPanel() {
         >
           Add Table
         </Button>
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_CUSTOM_NODE', payload: { content: {} } } })}
+        >
+          Add Custom Node
+        </Button>
       </div>
     </div>
   );

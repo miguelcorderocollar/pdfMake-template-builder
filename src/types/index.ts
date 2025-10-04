@@ -198,6 +198,7 @@ export type AppAction =
       | { type: 'ADD_IMAGE_NODE'; payload: { index?: number } & ImageNode }
       | { type: 'ADD_LIST_NODE'; payload: { index?: number } & ListNode }
       | { type: 'ADD_TABLE_NODE'; payload: { index?: number } & TableNode }
+      | { type: 'ADD_CUSTOM_NODE'; payload: { index?: number; content: unknown } }
       | { type: 'UPDATE_STRING'; payload: { index: number; value: string } }
       | { type: 'UPDATE_TEXT_NODE'; payload: { index: number; text?: string; style?: string | string[] } }
       | { type: 'UPDATE_IMAGE_NODE'; payload: { index: number } & Partial<ImageNode> }

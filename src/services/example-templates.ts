@@ -1,7 +1,7 @@
 import { DocDefinition } from "@/types";
 
-// Default example based on docs/examples/styles-simple.js
-export const stylesSimpleDoc: DocDefinition = {
+// Default demo template based on docs/examples/styles-simple.js
+export const demoTemplate: DocDefinition = {
   pageSize: 'A4',
   pageOrientation: 'portrait',
   pageMargins: [40, 60, 40, 60],
@@ -16,7 +16,7 @@ export const stylesSimpleDoc: DocDefinition = {
       { text: 'Right part', alignment: 'right' }
     ]
   },
-  info: { title: 'Styles Simple Example' },
+  info: { title: 'Demo Template' },
   language: 'en-US',
   watermark: { text: '' },
   content: [
@@ -97,6 +97,43 @@ export const stylesSimpleDoc: DocDefinition = {
     },
     {
       text: 'Ready to customize further? Add new nodes from the Elements panel or import your own pdfMake definition to see how everything renders instantly.',
+      margin: [0, 0, 0, 20]
+    },
+    {
+      text: 'Custom node examples',
+      style: 'subheader',
+      margin: [0, 0, 0, 15]
+    },
+    {
+      text: 'PDFMake lets you create custom structures by combining multiple elements. Below are two simple examples showing how to build reusable components:',
+      margin: [0, 0, 0, 15]
+    },
+    {
+      columns: [
+        {
+          width: '50%',
+          stack: [
+            { text: 'Example 1: Info Box', style: 'subheader', fontSize: 12, margin: [0, 0, 0, 10] },
+            { text: 'Title: Quick Tip', bold: true, margin: [0, 0, 0, 5] },
+            { text: 'Custom nodes use columns and stacks to arrange content. This example combines text elements with different styles to create an information box.', fontSize: 10 }
+          ],
+          margin: [0, 0, 10, 0]
+        },
+        {
+          width: '50%',
+          stack: [
+            { text: 'Example 2: Stat Card', style: 'subheader', fontSize: 12, margin: [0, 0, 0, 10] },
+            { text: '1,234', fontSize: 24, bold: true, color: '#1d4ed8', alignment: 'center', margin: [0, 0, 0, 5] },
+            { text: 'Total Downloads', fontSize: 10, alignment: 'center', color: '#64748b' }
+          ],
+          margin: [10, 0, 0, 0]
+        }
+      ],
+      margin: [0, 0, 0, 20]
+    },
+    {
+      text: 'These custom structures showcase how columns, stacks, and inline styles combine to create reusable design patterns. Select them in the editor to inspect their properties.',
+      style: 'small',
       margin: [0, 0, 0, 20]
     },
     {

@@ -6,9 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
-import type { Template, Theme } from "@/types";
+import type { Theme } from "@/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
+import { useTemplateManagement } from "@/hooks/use-template-management";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -22,18 +24,30 @@ export function Header({
   onExportPDF,
 }: HeaderProps) {
   const { state, dispatch } = useApp();
+  const {
+    templates,
+    currentTemplate: template,
+    isDirty,
+    saveTemplate,
+    deleteTemplate,
+    copyCurrentTemplate,
+    exportCurrent,
+    exportAll,
+    selectTemplate,
+    createNewTemplate,
+    importTemplateFromFile,
+    importTemplateFromJSON,
+  } = useTemplateManagement();
+  
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const importAllInputRef = useRef<HTMLInputElement | null>(null);
-
-  const template = state.currentTemplate;
-  const templates = state.templates ?? [];
-  
 
   const templateName = template?.name ?? "Untitled";
   const setTemplateName = (name: string) => dispatch({ type: 'SET_TEMPLATE_NAME', payload: name });
@@ -52,186 +66,33 @@ export function Header({
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
-  function ensureSavedBefore(action: () => void) {
-    if (state.dirty) {
-      const save = confirm('You have unsaved changes. Save them now?');
-      if (save) dispatch({ type: 'SAVE_TEMPLATE' });
-    }
-    action();
-  }
-
-  function handleSave() {
-    if (!template) return;
-    if (!template.name || template.name.trim() === '') {
-      alert('Please provide a template name before saving.');
-      return;
-    }
-    dispatch({ type: 'SAVE_TEMPLATE' });
-  }
-
   function handleDelete() {
     if (!template) return;
-    const confirmDelete = confirm(`Delete template "${template.name}"? This cannot be undone.`);
-    if (!confirmDelete) return;
-    dispatch({ type: 'DELETE_TEMPLATE', payload: { id: template.id } });
+    setDeleteConfirmOpen(true);
   }
 
-  function copyTemplate() {
+  function handleConfirmDelete() {
     if (!template) return;
-    const newId = `tpl-${Date.now()}`;
-    const copy: Template = {
-      id: newId,
-      name: `Copy of ${template.name}`,
-      docDefinition: JSON.parse(JSON.stringify(template.docDefinition)),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [copy] } });
-    dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id: newId } });
-  }
-
-  function exportCurrentTemplate() {
-    if (!template) return;
-    const dataStr = JSON.stringify(template, null, 2);
-    const url = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name || 'template'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function exportAllTemplates() {
-    const dataStr = JSON.stringify(templates, null, 2);
-    const url = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `templates.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    deleteTemplate(template.id);
   }
 
   function handleSelectTemplate(id: string) {
-    if (id === '__new__') {
-      createNewTemplate();
-      return;
-    }
-    ensureSavedBefore(() => {
-      dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id } });
-    });
-  }
-
-  function createNewTemplate() {
-    ensureSavedBefore(() => {
-      const newId = `tpl-${Date.now()}`;
-      const baseName = 'Untitled Template';
-      const existingNames = new Set(templates.map(t => t.name));
-      let name = baseName;
-      let counter = 1;
-      while (existingNames.has(name)) {
-        counter += 1;
-        name = `${baseName} ${counter}`;
-      }
-      const t: Template = {
-        id: newId,
-        name,
-        docDefinition: { content: [], styles: {} },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [t] } });
-      dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id: newId } });
-    });
+    selectTemplate(id);
   }
 
   function handleImportFile(file: File, all: boolean) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const text = String(reader.result ?? '');
-        const json = JSON.parse(text);
-        if (all) {
-          if (Array.isArray(json)) {
-            dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: json as Template[] } });
-          } else {
-            alert('Expected an array of templates');
-          }
-        } else {
-          let newTemplate: Template | null = null;
-          if (Array.isArray(json)) {
-            const t = json[0];
-            if (!t) throw new Error('No template found in file');
-            newTemplate = normalizeToTemplate(t);
-          } else {
-            newTemplate = normalizeToTemplate(json);
-          }
-          if (newTemplate) {
-            dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [newTemplate] } });
-            dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id: newTemplate.id } });
-          }
-        }
-      } catch (e) {
-        console.error(e);
-        alert('Failed to import. Ensure JSON is valid.');
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  function parseDate(value: unknown): Date {
-    if (value instanceof Date) return value;
-    if (typeof value === 'string' || typeof value === 'number') {
-      const d = new Date(value);
-      if (!Number.isNaN(d.getTime())) return d;
-    }
-    return new Date();
-  }
-
-  function isTemplateLike(input: unknown): input is { id?: unknown; name?: unknown; docDefinition?: unknown; createdAt?: unknown; updatedAt?: unknown } {
-    return !!(input && typeof input === 'object' && 'docDefinition' in (input as Record<string, unknown>) && 'id' in (input as Record<string, unknown>) && 'name' in (input as Record<string, unknown>));
-  }
-
-  function normalizeToTemplate(input: unknown): Template {
-    if (isTemplateLike(input)) {
-      const t = input as { id?: unknown; name?: unknown; docDefinition?: unknown; createdAt?: unknown; updatedAt?: unknown };
-      return {
-        id: String(t.id ?? `tpl-${Date.now()}`),
-        name: String(t.name ?? 'Imported Template'),
-        docDefinition: (t.docDefinition as import("@/types").DocDefinition) ?? { content: [], styles: {} },
-        createdAt: parseDate(t.createdAt),
-        updatedAt: new Date(),
-      };
-    }
-    // Treat as DocDefinition only
-    const newId = `tpl-${Date.now()}`;
-    return {
-      id: newId,
-      name: 'Imported Template',
-      docDefinition: input as import("@/types").DocDefinition,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    importTemplateFromFile(file, all);
   }
 
   function handlePasteImport() {
-    try {
-      const json = JSON.parse(pasteText);
-      const t = Array.isArray(json) ? normalizeToTemplate(json[0]) : normalizeToTemplate(json);
-      dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [t] } });
-      dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id: t.id } });
+    const success = importTemplateFromJSON(pasteText);
+    if (success) {
       setPasteOpen(false);
       setPasteText('');
-    } catch (e) {
-      console.error(e);
-      alert('Invalid JSON');
     }
   }
 
-  const dirtyDot = state.dirty ? (
+  const dirtyDot = isDirty ? (
     <span className="inline-block h-2 w-2 rounded-full bg-amber-500" aria-label="Unsaved changes" />
   ) : null;
 
@@ -259,18 +120,27 @@ export function Header({
                 className="h-8 w-[240px]"
               placeholder="Template name"
             />
-              <Button variant="outline" size="sm" onClick={handleSave}>
+              <Button variant="outline" size="sm" onClick={saveTemplate}>
                 <Save className="h-4 w-4 mr-2" />
                 Save
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                aria-label="Delete template"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleDelete}
+                      aria-label="Delete template"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="z-[70]">
+                    Delete template
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -335,9 +205,9 @@ export function Header({
           </Button>
             {exportOpen && (
               <div className="absolute right-0 mt-1 w-56 rounded-md border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); copyTemplate(); }}>Duplicate current template</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportCurrentTemplate(); }}>Export current template</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportAllTemplates(); }}>Export all templates</button>
+                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); copyCurrentTemplate(); }}>Duplicate current template</button>
+                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportCurrent(); }}>Export current template</button>
+                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportAll(); }}>Export all templates</button>
               </div>
             )}
           </div>
@@ -403,6 +273,18 @@ export function Header({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Template"
+        description={`Are you sure you want to delete "${template?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+      />
     </Card>
   );
 }
