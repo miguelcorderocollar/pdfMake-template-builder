@@ -5,13 +5,11 @@ import { ArrowDown, ArrowUp, Trash2, Plus, Pencil, Edit3, Save, X } from "lucide
 import { useApp } from "@/lib/app-context";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ParagraphItem } from "@/components/nodes/ParagraphItem";
 import { TextNodeItem } from "@/components/nodes/TextNodeItem";
 import { ImageNodeItem } from "@/components/nodes/ImageNodeItem";
 import { ListNodeItem } from "@/components/nodes/ListNodeItem";
 import { TableNodeItem } from "@/components/nodes/TableNodeItem";
 import { UnknownNodeEditor } from "@/components/nodes/UnknownNodeEditor";
-import { ParagraphPreview } from "@/components/nodes/previews/ParagraphPreview";
 import { TextNodePreview } from "@/components/nodes/previews/TextNodePreview";
 import { ImageNodePreview } from "@/components/nodes/previews/ImageNodePreview";
 import { ListNodePreview } from "@/components/nodes/previews/ListNodePreview";
@@ -269,9 +267,11 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 				{isEditing ? (
 					// Edit Mode - Full editors
 					typeof draftItem === 'string' ? (
-						<ParagraphItem
+						<textarea
+							className="w-full resize-y rounded-md border border-input bg-background p-3 leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+							rows={3}
 							value={draftItem}
-							onChange={(value) => setDraftItem(value)}
+							onChange={(e) => setDraftItem(e.target.value)}
 						/>
 					) : hasCustomFlag(draftItem) ? (
 						<UnknownNodeEditor index={index} value={draftItem} />
@@ -307,7 +307,18 @@ export function ContentListItem({ index, item }: { index: number; item: DocConte
 				) : (
 					// Preview Mode - Compact view
 					typeof item === 'string' ? (
-						<ParagraphPreview value={item} />
+						<div className="text-sm text-muted-foreground relative group">
+							<div className="p-3 rounded-md bg-muted/20 border border-dashed">
+								<p className="whitespace-pre-wrap break-words line-clamp-3">
+									{item || <span className="italic">Empty paragraph</span>}
+								</p>
+								{item.length > 150 && (
+									<span className="text-xs text-muted-foreground/60 mt-2 block">
+										({item.length} characters)
+									</span>
+								)}
+							</div>
+						</div>
 					) : hasCustomFlag(item) ? (
 						<UnknownNodePreview value={item} />
 					) : isImageNode(item) ? (

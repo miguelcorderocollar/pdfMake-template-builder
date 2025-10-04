@@ -8,13 +8,11 @@ export function ElementsPanel() {
   const { dispatch } = useApp();
   
   // Get type info for each node type (with border colors)
-  const paragraphInfo = getNodeTypeInfoByName('paragraph');
   const textInfo = getNodeTypeInfoByName('text');
   const imageInfo = getNodeTypeInfoByName('image');
   const listInfo = getNodeTypeInfoByName('list');
   const tableInfo = getNodeTypeInfoByName('table');
   const unknownInfo = getNodeTypeInfoByName('unknown');
-  const ParagraphIcon = paragraphInfo.icon;
   const TextIcon = textInfo.icon;
   const ImageIcon = imageInfo.icon;
   const ListIcon = listInfo.icon;
@@ -25,14 +23,6 @@ export function ElementsPanel() {
     <div>
       <h3 className="font-medium mb-3">Element Palette</h3>
       <div className="grid gap-2">
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${paragraphInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_STRING', payload: { value: 'New paragraph' } } })}
-        >
-          <ParagraphIcon className={`h-4 w-4 ${paragraphInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>Paragraph</span>
-        </Button>
         <Button
           variant="outline"
           className={`justify-start gap-2 border-l-4 ${textInfo.borderColor}`}

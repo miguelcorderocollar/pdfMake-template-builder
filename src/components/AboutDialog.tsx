@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Heart, BookOpen, ExternalLink, Code2, User } from "lucide-react";
+import { Heart, BookOpen, ExternalLink, Code2 } from "lucide-react";
 
 interface AboutDialogProps {
   open: boolean;

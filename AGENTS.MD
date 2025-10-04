@@ -198,6 +198,7 @@ bun test -- <filename>
 - **Mobile support** - Test on various screen sizes
 
 ### CI/Build parity
+- **Build frequently** - After significant code changes, run `bun run build` locally to verify the project still builds.
 - **Zero warnings policy** - Run `bun lint -- --cache --max-warnings=0` and fix all warnings locally before pushing.
 - **Type-safety gate** - `bun type-check` must pass locally before pushing.
 - **Production build gate** - Run `bun run build` locally; the build must succeed.
