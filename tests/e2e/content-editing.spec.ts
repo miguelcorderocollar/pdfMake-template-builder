@@ -17,7 +17,7 @@ test.describe('Content Editing', () => {
 
   test('can add a new text element via sidebar', async ({ page }) => {
     // Go to Elements tab in sidebar
-    await page.locator('button:has-text("Elements")').click()
+    await page.getByRole('tab', { name: 'Elements' }).click()
     
     // Add a text node
     const addTextButton = page.locator('button:has-text("Add Text Node")').first()
@@ -156,14 +156,14 @@ test.describe('PDF Preview', () => {
     const previewButton = page.locator('button:has-text("Preview")')
     await previewButton.click()
     
-    // Should show PDF preview modal
-    await expect(page.locator('text=PDF Preview')).toBeVisible()
+    // Should show PDF preview modal heading
+    await expect(page.getByRole('heading', { name: 'PDF Preview' })).toBeVisible()
   })
 
   test('can close PDF preview', async ({ page }) => {
     // Open preview
     await page.locator('button:has-text("Preview")').click()
-    await expect(page.locator('text=PDF Preview')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'PDF Preview' })).toBeVisible()
     
     // Close preview
     const closeButton = page.locator('button').filter({ has: page.locator('[class*="X"]') }).first()
@@ -171,7 +171,7 @@ test.describe('PDF Preview', () => {
     
     // Preview should be closed
     await page.waitForTimeout(500)
-    await expect(page.locator('text=PDF Preview')).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: 'PDF Preview' })).not.toBeVisible()
   })
 
   test('shows loading state while generating PDF', async ({ page }) => {
@@ -249,4 +249,3 @@ test.describe('Theme', () => {
     expect(hasDarkClass).toBe(true)
   })
 })
-

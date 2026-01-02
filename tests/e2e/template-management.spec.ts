@@ -9,6 +9,10 @@ test.describe('Template Management', () => {
     await page.waitForLoadState('networkidle')
   })
 
+  // Helper to get the Templates dropdown button in the header (not the sidebar tab)
+  const getTemplatesDropdownButton = (page: import('@playwright/test').Page) =>
+    page.locator('header').getByRole('button', { name: 'Templates' })
+
   test('loads with default demo template', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -58,8 +62,8 @@ test.describe('Template Management', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Open templates dropdown
-    const templatesButton = page.locator('button:has-text("Templates")')
+    // Open templates dropdown (header button, not sidebar tab)
+    const templatesButton = getTemplatesDropdownButton(page)
     await templatesButton.click()
 
     // Click "New template..."
@@ -79,8 +83,8 @@ test.describe('Template Management', () => {
     const templateNameInput = page.locator('input[placeholder="Template name"]')
     const initialName = await templateNameInput.inputValue()
 
-    // Create a new template first
-    const templatesButton = page.locator('button:has-text("Templates")')
+    // Create a new template first (header button, not sidebar tab)
+    const templatesButton = getTemplatesDropdownButton(page)
     await templatesButton.click()
     await page.locator('button:has-text("New template…")').click()
     
@@ -110,8 +114,8 @@ test.describe('Template Management', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // First create a second template so we can delete one
-    const templatesButton = page.locator('button:has-text("Templates")')
+    // First create a second template so we can delete one (header button, not sidebar tab)
+    const templatesButton = getTemplatesDropdownButton(page)
     await templatesButton.click()
     await page.locator('button:has-text("New template…")').click()
     await page.waitForTimeout(500)
@@ -178,27 +182,26 @@ test.describe('Template Management', () => {
     expect(newName).toBe('Copy of Original Template')
   })
 
-  test('warns when leaving with unsaved changes', async ({ page }) => {
+  test('shows dirty indicator when template has unsaved changes', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
+
+    // Initially should not show dirty indicator
+    const dirtyDot = page.locator('span[aria-label="Unsaved changes"]')
+    await expect(dirtyDot).not.toBeVisible()
 
     // Make a change
     const templateNameInput = page.locator('input[placeholder="Template name"]')
     await templateNameInput.fill('Modified Template')
 
-    // Set up dialog handler before navigation
-    let dialogMessage = ''
-    page.on('dialog', async (dialog) => {
-      dialogMessage = dialog.message()
-      await dialog.dismiss()
-    })
+    // Dirty indicator should appear
+    await expect(dirtyDot).toBeVisible()
 
-    // Try to navigate away
-    await page.goto('about:blank')
+    // Save the template
+    const saveButton = page.locator('button:has-text("Save")')
+    await saveButton.click()
 
-    // The beforeunload might or might not trigger in test environments
-    // but we at least verify the dirty state exists
-    expect(await page.locator('span[aria-label="Unsaved changes"]').isVisible()).toBe(false)
+    // Dirty indicator should disappear after save
+    await expect(dirtyDot).not.toBeVisible()
   })
 })
-
