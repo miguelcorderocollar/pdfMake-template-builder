@@ -4,7 +4,7 @@ This file contains instructions and best practices for AI coding agents working 
 
 ## ⚠️ IMPORTANT: Human-in-the-Loop Development
 
-**The human developer (user) is in charge of running all terminal commands and managing the development environment.** Do not execute terminal commands yourself. Only provide the commands for the user to run.
+**The human developer (user) is in charge of managing the development environment.**
 
 ## 📋 Project Overview
 
@@ -128,26 +128,59 @@ pdfmake-builder/
 
 ## 🧪 Testing Instructions
 
-### Testing Strategy
-- **Unit tests** - Test individual functions and components
-- **Integration tests** - Test component interactions
-- **E2E tests** - Test complete user workflows
-- **Visual regression** - Ensure UI consistency
+### Testing Stack
+- **Vitest** - Unit and component tests (fast, TypeScript-first)
+- **React Testing Library** - Component testing with AppContext
+- **Playwright** - E2E browser tests
 
-### Test Commands (Run by Human)
-```bash
-# Run all tests
-bun test
-
-# Run tests in watch mode
-bun test:watch
-
-# Run tests with coverage
-bun test:coverage
-
-# Run specific test file
-bun test -- <filename>
+### Test Structure
 ```
+tests/
+├── unit/           # Pure logic: reducer, utils, type guards
+├── hooks/          # Custom hooks with mocked context
+├── components/     # React components with TestProvider
+└── e2e/            # Playwright browser tests
+```
+
+### Test Commands
+```bash
+bun test                    # Run all unit/component/hook tests
+bun test:watch              # Watch mode
+bun test:coverage           # With coverage report
+bun test -- <filename>      # Specific file
+bun test:e2e                # Playwright E2E tests
+bun test:e2e:ui             # Playwright with UI
+```
+
+### Writing Tests
+
+**Unit tests** (pure functions):
+```typescript
+import { describe, it, expect } from 'vitest'
+import { myFunction } from '@/utils/my-utils'
+
+describe('myFunction', () => {
+  it('does something', () => {
+    expect(myFunction('input')).toBe('output')
+  })
+})
+```
+
+**Component tests** (with context):
+```typescript
+import { render, screen } from '@testing-library/react'
+import { TestAppProvider } from 'tests/test-utils'
+
+render(
+  <TestAppProvider initialState={{ ... }}>
+    <MyComponent />
+  </TestAppProvider>
+)
+```
+
+### Coverage Targets
+- `src/lib/` and `src/utils/` - aim for 80%+ coverage
+- Run `bun test:coverage` to check before refactoring
 
 ## 🔧 Development Best Practices
 
@@ -213,10 +246,8 @@ bun test -- <filename>
 - **Usage examples** - Include examples in comments
 
 ### Project Documentation
-- **README updates** - Keep README current
+- **README updates** - Keep README at root updated
 - **API documentation** - Document public APIs
-- **Architecture decisions** - Record important decisions
-- **Change log** - Track significant changes
 
 ## 🔄 Development Workflow
 
