@@ -1,71 +1,112 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
-import { getNodeTypeInfoByName } from "@/utils/node-info";
+import { Type, Image, List, Table, Code } from "lucide-react";
+
+const elements = [
+  {
+    id: "text",
+    name: "Text Node",
+    description: "Rich or simple text content",
+    icon: Type,
+    accentClass: "node-accent-text",
+    action: {
+      type: "ADD_TEXT_NODE" as const,
+      payload: { text: "New text", style: undefined },
+    },
+  },
+  {
+    id: "image",
+    name: "Image",
+    description: "Upload or link an image",
+    icon: Image,
+    accentClass: "node-accent-image",
+    action: {
+      type: "ADD_IMAGE_NODE" as const,
+      payload: {
+        image:
+          "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==",
+        opacity: 1,
+      },
+    },
+  },
+  {
+    id: "list",
+    name: "List",
+    description: "Ordered or unordered list",
+    icon: List,
+    accentClass: "node-accent-list",
+    action: {
+      type: "ADD_LIST_NODE" as const,
+      payload: { ul: ["Item 1", "Item 2", "Item 3"] },
+    },
+  },
+  {
+    id: "table",
+    name: "Table",
+    description: "Rows and columns of data",
+    icon: Table,
+    accentClass: "node-accent-table",
+    action: {
+      type: "ADD_TABLE_NODE" as const,
+      payload: { table: { body: [["A1", "B1", "C1"], ["A2", "B2", "C2"]] } },
+    },
+  },
+  {
+    id: "custom",
+    name: "Custom Node",
+    description: "Raw pdfMake JSON",
+    icon: Code,
+    accentClass: "node-accent-custom",
+    action: {
+      type: "ADD_CUSTOM_NODE" as const,
+      payload: { content: {} },
+    },
+  },
+];
 
 export function ElementsPanel() {
   const { dispatch } = useApp();
   
-  // Get type info for each node type (with border colors)
-  const textInfo = getNodeTypeInfoByName('text');
-  const imageInfo = getNodeTypeInfoByName('image');
-  const listInfo = getNodeTypeInfoByName('list');
-  const tableInfo = getNodeTypeInfoByName('table');
-  const unknownInfo = getNodeTypeInfoByName('unknown');
-  const TextIcon = textInfo.icon;
-  const ImageIcon = imageInfo.icon;
-  const ListIcon = listInfo.icon;
-  const TableIcon = tableInfo.icon;
-  const UnknownIcon = unknownInfo.icon;
-  
   return (
+    <div className="space-y-4">
     <div>
-      <h3 className="font-medium mb-3">Element Palette</h3>
+        <h3 className="font-serif text-base mb-1">Add Element</h3>
+        <p className="text-xs text-muted-foreground">
+          Click to add a new element to your document
+        </p>
+      </div>
+
       <div className="grid gap-2">
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${textInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_TEXT_NODE', payload: { text: 'New text', style: undefined } } })}
+        {elements.map((element) => {
+          const Icon = element.icon;
+          return (
+            <button
+              key={element.id}
+              className={`${element.accentClass} flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors text-left group`}
+              onClick={() =>
+                dispatch({ type: "CONTENT_OP", payload: element.action })
+              }
         >
-          <TextIcon className={`h-4 w-4 ${textInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>Text Node</span>
-        </Button>
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${imageInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_IMAGE_NODE', payload: { image: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', opacity: 1 } } })}
-        >
-          <ImageIcon className={`h-4 w-4 ${imageInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>Image</span>
-        </Button>
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${listInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_LIST_NODE', payload: { ul: ['item 1', 'item 2', 'item 3'] } } })}
-        >
-          <ListIcon className={`h-4 w-4 ${listInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>List</span>
-        </Button>
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${tableInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_TABLE_NODE', payload: { table: { body: [['A1','B1','C1'], ['A2','B2','C2']] } } } })}
-        >
-          <TableIcon className={`h-4 w-4 ${tableInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>Table</span>
-        </Button>
-        <Button
-          variant="outline"
-          className={`justify-start gap-2 border-l-4 ${unknownInfo.borderColor}`}
-          onClick={() => dispatch({ type: 'CONTENT_OP', payload: { type: 'ADD_CUSTOM_NODE', payload: { content: {} } } })}
-        >
-          <UnknownIcon className={`h-4 w-4 ${unknownInfo.iconColor}`} data-darkreader-ignore suppressHydrationWarning />
-          <span>Custom Node</span>
-        </Button>
+              {/* Left accent */}
+              <div className="w-1 h-8 rounded-full node-border opacity-60 group-hover:opacity-100 transition-opacity" />
+
+              {/* Icon */}
+              <div className="node-icon">
+                <Icon className="h-5 w-5" />
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">{element.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {element.description}
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
-
-

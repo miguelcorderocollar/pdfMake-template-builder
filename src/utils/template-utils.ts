@@ -63,6 +63,44 @@ export function normalizeToTemplate(input: unknown): Template {
 }
 
 /**
+ * Normalize any input into a valid Template object for import
+ * Always generates a new unique ID to avoid conflicts with existing templates
+ */
+export function normalizeToTemplateForImport(input: unknown, existingIds: string[] = []): Template {
+  const existingIdSet = new Set(existingIds);
+  let newId = `tpl-${Date.now()}`;
+  // Ensure the ID is unique (very unlikely collision, but be safe)
+  while (existingIdSet.has(newId)) {
+    newId = `tpl-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  }
+  
+  if (isTemplateLike(input)) {
+    const t = input as { 
+      id?: unknown; 
+      name?: unknown; 
+      docDefinition?: unknown; 
+      createdAt?: unknown; 
+      updatedAt?: unknown 
+    };
+    return {
+      id: newId,
+      name: String(t.name ?? 'Imported Template'),
+      docDefinition: (t.docDefinition as DocDefinition) ?? { content: [], styles: {} },
+      createdAt: parseDate(t.createdAt),
+      updatedAt: new Date(),
+    };
+  }
+  // Treat as DocDefinition only
+  return {
+    id: newId,
+    name: 'Imported Template',
+    docDefinition: input as DocDefinition,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+/**
  * Export a template to JSON file
  */
 export function exportTemplateToFile(template: Template) {

@@ -2,36 +2,53 @@
 
 import { useApp } from "@/lib/app-context";
 import { GripVertical } from "lucide-react";
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { getNodeTypeInfo, getNodeDisplayName } from "@/utils/node-info";
+
+// Map node type labels to CSS accent classes
+function getNodeAccentClass(label: string): string {
+  switch (label.toLowerCase()) {
+    case "text":
+    case "paragraph":
+      return "node-accent-text";
+    case "image":
+      return "node-accent-image";
+    case "list":
+      return "node-accent-list";
+    case "table":
+      return "node-accent-table";
+    default:
+      return "node-accent-custom";
+  }
+}
 
 export function NodeOverviewPanel() {
   const { state, dispatch } = useApp();
-  
+
   const content = state.currentTemplate?.docDefinition?.content ?? [];
   const selectedIndex = state.selectedIndex;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    
+
     const from = result.source.index;
     const to = result.destination.index;
-    
+
     if (from === to) return;
-    
+
     dispatch({
-      type: 'CONTENT_OP',
-      payload: { type: 'MOVE_ITEM', payload: { from, to } }
+      type: "CONTENT_OP",
+      payload: { type: "MOVE_ITEM", payload: { from, to } },
     });
   };
 
   const handleNodeClick = (index: number) => {
-    dispatch({ type: 'SET_SELECTED_INDEX', payload: index });
-    
+    dispatch({ type: "SET_SELECTED_INDEX", payload: index });
+
     // Scroll to the node in the main content list
     const element = document.querySelector(`[data-content-index="${index}"]`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -40,7 +57,7 @@ export function NodeOverviewPanel() {
       <div className="h-full flex items-center justify-center p-4">
         <div className="text-center text-sm text-muted-foreground">
           <p>No content yet</p>
-          <p className="text-xs mt-2">Add elements to see them here</p>
+          <p className="text-xs mt-2">Add elements from the sidebar</p>
         </div>
       </div>
     );
@@ -48,13 +65,7 @@ export function NodeOverviewPanel() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b bg-muted/30">
-        <h3 className="font-semibold text-sm">Document Overview</h3>
-        <p className="text-xs text-muted-foreground mt-1">
-          {content.length} node{content.length !== 1 ? 's' : ''}
-        </p>
-      </div>
-      
+      {/* Node List */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="node-overview">
           {(provided) => (
@@ -68,6 +79,7 @@ export function NodeOverviewPanel() {
                 const NodeIcon = typeInfo.icon;
                 const name = getNodeDisplayName(item, index);
                 const isSelected = selectedIndex === index;
+                const accentClass = getNodeAccentClass(typeInfo.label);
 
                 return (
                   <Draggable
@@ -80,34 +92,42 @@ export function NodeOverviewPanel() {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         className={`
-                          flex items-center gap-2 p-2 rounded-md border cursor-pointer
-                          transition-all
-                          ${isSelected 
-                            ? 'bg-primary/10 border-primary ring-2 ring-primary/20' 
-                            : 'bg-card hover:bg-accent/50 border-border'
+                          ${accentClass}
+                          flex items-center gap-2 py-2 px-2 rounded-md cursor-pointer
+                          transition-all duration-150
+                          border-l-2 node-border
+                          ${
+                            isSelected
+                              ? "bg-primary/10 ring-1 ring-primary/30"
+                              : "hover:bg-muted/50"
                           }
-                          ${snapshot.isDragging ? 'shadow-lg' : 'shadow-sm'}
+                          ${snapshot.isDragging ? "shadow-lg bg-card" : ""}
                         `}
                         onClick={() => handleNodeClick(index)}
                       >
+                        {/* Drag handle */}
                         <div
                           {...provided.dragHandleProps}
-                          className="flex-shrink-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+                          className="flex-shrink-0 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing"
                         >
-                          <GripVertical className="h-4 w-4" />
+                          <GripVertical className="h-3.5 w-3.5" />
                         </div>
-                        
-                        <div className="flex-shrink-0">
-                          <NodeIcon className={`h-4 w-4 ${typeInfo.iconColor}`} />
+
+                        {/* Node icon with accent color */}
+                        <div className="flex-shrink-0 node-icon">
+                          <NodeIcon className="h-4 w-4" />
                         </div>
-                        
+
+                        {/* Node name */}
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-medium truncate">
+                          <div className="text-sm font-medium truncate font-serif">
                             {name}
                           </div>
-                          <div className="text-[10px] text-muted-foreground">
-                            {typeInfo.label} #{index + 1}
-                          </div>
+                        </div>
+
+                        {/* Index indicator */}
+                        <div className="flex-shrink-0 text-[10px] text-muted-foreground/60 tabular-nums">
+                          #{index + 1}
                         </div>
                       </div>
                     )}

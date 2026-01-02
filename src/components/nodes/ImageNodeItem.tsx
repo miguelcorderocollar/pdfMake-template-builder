@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Upload, Link, Code, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 type ImageNodeData = {
   image: string;
@@ -19,7 +25,7 @@ export function ImageNodeItem({
   onChange: (next: Partial<ImageNodeData>) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [mode, setMode] = useState<'file' | 'url' | 'base64'>("file");
+  const [mode, setMode] = useState<"file" | "url" | "base64">("file");
   const [urlDraft, setUrlDraft] = useState("");
   const [fitW, setFitW] = useState<string>(data.fit ? String(data.fit[0]) : "");
   const [fitH, setFitH] = useState<string>(data.fit ? String(data.fit[1]) : "");
@@ -27,11 +33,12 @@ export function ImageNodeItem({
   const [urlError, setUrlError] = useState<string | null>(null);
   const [b64Draft, setB64Draft] = useState<string>("");
   const [b64Error, setB64Error] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const userPickedModeRef = useRef(false);
 
-  // Helpers
   const isValidHttpUrl = (value: string) => /^https?:\/\//i.test(value);
-  const isValidDataUrlBase64 = (value: string) => /^data:[^;]+;base64,[A-Za-z0-9+/=\s]+$/i.test(value);
+  const isValidDataUrlBase64 = (value: string) =>
+    /^data:[^;]+;base64,[A-Za-z0-9+/=\s]+$/i.test(value);
 
   const fit = data.fit;
   useEffect(() => {
@@ -39,41 +46,37 @@ export function ImageNodeItem({
     setFitH(fit ? String(fit[1]) : "");
   }, [fit]);
 
-  // Auto-detect mode based on current image value unless the user explicitly chose a mode
   const image = data.image ?? "";
   useEffect(() => {
     if (userPickedModeRef.current) return;
     const val = String(image || "");
-    if (val.startsWith('data:')) {
-      setMode('base64');
+    if (val.startsWith("data:")) {
+      setMode("base64");
     } else if (/^https?:\/\//i.test(val)) {
-      setMode('url');
-    } else if (val) {
-      // Fallback: unknown string; keep current selection
+      setMode("url");
     }
   }, [image]);
 
-  // Validate drafts live and provide immediate feedback
   useEffect(() => {
-    if (mode === 'url') {
+    if (mode === "url") {
       if (!urlDraft) {
         setUrlError(null);
       } else if (isValidHttpUrl(urlDraft) || isValidDataUrlBase64(urlDraft)) {
         setUrlError(null);
       } else {
-        setUrlError('Enter a valid http(s) URL or a full data URL');
+        setUrlError("Enter a valid http(s) URL or data URL");
       }
     }
   }, [mode, urlDraft]);
 
   useEffect(() => {
-    if (mode === 'base64') {
+    if (mode === "base64") {
       if (!b64Draft) {
         setB64Error(null);
       } else if (isValidDataUrlBase64(b64Draft)) {
         setB64Error(null);
       } else {
-        setB64Error('Please paste a full data URL like data:image/jpeg;base64,/9j...');
+        setB64Error("Please paste a full data URL (data:image/...;base64,...)");
       }
     }
   }, [mode, b64Draft]);
@@ -93,8 +96,8 @@ export function ImageNodeItem({
     const trimmed = urlDraft.trim();
     if (!trimmed) return;
     setUrlError(null);
-    // If already a data URL, accept directly
-    if (trimmed.startsWith('data:image/')) {
+
+    if (trimmed.startsWith("data:image/")) {
       onChange({ image: trimmed });
       setUrlDraft("");
       return;
@@ -102,19 +105,19 @@ export function ImageNodeItem({
 
     setUrlBusy(true);
     try {
-      const res = await fetch(trimmed, { mode: 'cors' });
+      const res = await fetch(trimmed, { mode: "cors" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const reader = new FileReader();
       const dataUrl: string = await new Promise((resolve, reject) => {
         reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error('Failed to read as data URL'));
+        reader.onerror = () => reject(new Error("Failed to read as data URL"));
         reader.readAsDataURL(blob);
       });
       onChange({ image: dataUrl });
       setUrlDraft("");
     } catch {
-      setUrlError('Failed to fetch image or convert to data URL (CORS may block it).');
+      setUrlError("Failed to fetch image (CORS may block it)");
     } finally {
       setUrlBusy(false);
     }
@@ -125,170 +128,253 @@ export function ImageNodeItem({
     const trimmed = b64Draft.trim();
     if (!trimmed) return;
     if (!isValidDataUrlBase64(trimmed)) {
-      setB64Error('Please paste a full data URL like data:image/jpeg;base64,/9j...');
+      setB64Error("Please paste a full data URL");
       return;
     }
     onChange({ image: trimmed });
     setB64Draft("");
   };
 
+  const livePreview = (() => {
+    if (mode === "base64" && isValidDataUrlBase64(b64Draft)) return b64Draft;
+    if (mode === "url" && (isValidHttpUrl(urlDraft) || isValidDataUrlBase64(urlDraft)))
+      return urlDraft;
+    return null;
+  })();
+  const previewSrc = livePreview || data.image || "";
+
   return (
-    <div className="text-sm space-y-3">
+    <div className="space-y-4">
+      {/* Source mode tabs */}
       <div className="flex items-center gap-2">
-        <label className="text-xs text-muted-foreground min-w-[60px]">Source:</label>
-        <select
-          className="h-8 rounded-md border border-input bg-background px-2 text-xs hover:bg-accent transition-colors"
-          value={mode}
-          onChange={(e) => {
+        <Label className="text-xs text-muted-foreground">Source:</Label>
+        <div className="inline-flex rounded-md border border-border">
+          <button
+            onClick={() => {
+              userPickedModeRef.current = true;
+              setMode("file");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors ${
+              mode === "file" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+            }`}
+          >
+            <Upload className="h-3.5 w-3.5" />
+            File
+          </button>
+          <button
+            onClick={() => {
+              userPickedModeRef.current = true;
+              setMode("url");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border-l border-border ${
+              mode === "url" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+            }`}
+          >
+            <Link className="h-3.5 w-3.5" />
+            URL
+          </button>
+          <button
+            onClick={() => {
             userPickedModeRef.current = true;
-            setMode(e.target.value as typeof mode);
+              setMode("base64");
           }}
-        >
-          <option value="file">file</option>
-          <option value="url">url</option>
-          <option value="base64">base64</option>
-        </select>
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border-l border-border ${
+              mode === "base64" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+            }`}
+          >
+            <Code className="h-3.5 w-3.5" />
+            Base64
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-2">
-
-        {mode === 'file' && (
-          <div className="flex items-center gap-2">
+      {/* Source inputs */}
+      {mode === "file" && (
+        <div
+          className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-accent/20 transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Click to upload or drag and drop
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            PNG, JPG, GIF, WebP
+          </p>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              className="h-8 text-xs file:mr-2 file:h-8 file:px-3 file:rounded-md file:border file:text-xs file:bg-background hover:file:bg-accent"
+            className="hidden"
               onChange={handleFileChange}
             />
           </div>
         )}
 
-        {mode === 'url' && (
+      {mode === "url" && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <input
+          <div className="flex gap-2">
+            <Input
                 type="url"
-                className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="https://example.com/image.png or data:image/png;base64,..."
+              placeholder="https://example.com/image.png"
                 value={urlDraft}
                 onChange={(e) => setUrlDraft(e.target.value)}
               />
-              <button
-                className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors disabled:opacity-50"
-                onClick={applyUrl}
-                disabled={urlBusy}
-              >
-                {urlBusy ? 'Converting…' : 'Use URL'}
-              </button>
+            <Button onClick={applyUrl} disabled={urlBusy} size="sm">
+              {urlBusy ? "Loading..." : "Load"}
+            </Button>
             </div>
-            {urlError && <div className="text-xs text-destructive">{urlError}</div>}
+          {urlError && <p className="text-xs text-destructive">{urlError}</p>}
           </div>
         )}
 
-        {mode === 'base64' && (
+      {mode === "base64" && (
           <div className="space-y-2">
-            <textarea
-              className="min-h-20 rounded-md border border-input bg-background p-3 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Example: data:image/jpeg;base64,/9j/4RC5RXhpZgAATU0AKgA..."
+          <Textarea
+            className="min-h-20 font-mono text-xs"
+            placeholder="data:image/png;base64,..."
               value={b64Draft}
               onChange={(e) => setB64Draft(e.target.value)}
             />
             <div className="flex items-center gap-2">
-              <button className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors" onClick={applyBase64}>Use Data URL</button>
-              {b64Error && <div className="text-xs text-destructive">{b64Error}</div>}
-            </div>
+            <Button onClick={applyBase64} size="sm">
+              Apply
+            </Button>
+            {b64Error && <p className="text-xs text-destructive">{b64Error}</p>}
           </div>
-        )}
       </div>
+      )}
 
-      <div className="p-3 rounded-md bg-muted/50 border space-y-3">
-        <div className="text-xs font-medium text-muted-foreground">Dimensions</div>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Width</span>
-            <input
+      {/* Preview */}
+      {previewSrc && (
+        <div className="p-4 rounded-lg bg-muted/30 border border-border">
+          <p className="text-xs text-muted-foreground mb-2">Preview</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={previewSrc}
+            alt="Preview"
+            className="max-h-48 rounded-md border border-border"
+          />
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Advanced options toggle */}
+      <button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {showAdvanced ? (
+          <ChevronUp className="h-3.5 w-3.5" />
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5" />
+        )}
+        Dimensions & Options
+      </button>
+
+      {/* Advanced options */}
+      {showAdvanced && (
+        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="img-width" className="text-xs">Width</Label>
+              <Input
+                id="img-width"
               type="number"
-              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
               value={data.width ?? ""}
-              onChange={(e) => onChange({ width: e.target.value === "" ? undefined : Number(e.target.value) })}
+                onChange={(e) =>
+                  onChange({
+                    width: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+                placeholder="auto"
             />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Height</span>
-            <input
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="img-height" className="text-xs">Height</Label>
+              <Input
+                id="img-height"
               type="number"
-              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
               value={data.height ?? ""}
-              onChange={(e) => onChange({ height: e.target.value === "" ? undefined : Number(e.target.value) })}
+                onChange={(e) =>
+                  onChange({
+                    height: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+                placeholder="auto"
             />
-          </label>
+            </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Fit Width</span>
-            <input
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fit-width" className="text-xs">Fit Width</Label>
+              <Input
+                id="fit-width"
               type="number"
-              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
               value={fitW}
               onChange={(e) => {
                 const val = e.target.value;
                 setFitW(val);
                 const num = val === "" ? undefined : Number(val);
                 const other = fitH === "" ? undefined : Number(fitH);
-                onChange({ fit: num === undefined && other === undefined ? undefined : [num ?? 0, other ?? 0] as [number, number] });
+                  onChange({
+                    fit:
+                      num === undefined && other === undefined
+                        ? undefined
+                        : ([num ?? 0, other ?? 0] as [number, number]),
+                  });
               }}
+                placeholder="auto"
             />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Fit Height</span>
-            <input
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fit-height" className="text-xs">Fit Height</Label>
+              <Input
+                id="fit-height"
               type="number"
-              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
               value={fitH}
               onChange={(e) => {
                 const val = e.target.value;
                 setFitH(val);
                 const num = val === "" ? undefined : Number(val);
                 const other = fitW === "" ? undefined : Number(fitW);
-                onChange({ fit: num === undefined && other === undefined ? undefined : [other ?? 0, num ?? 0] as [number, number] });
+                  onChange({
+                    fit:
+                      num === undefined && other === undefined
+                        ? undefined
+                        : ([other ?? 0, num ?? 0] as [number, number]),
+                  });
               }}
+                placeholder="auto"
             />
-          </label>
+            </div>
         </div>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Opacity</span>
-          <input
+          <div className="space-y-2">
+            <Label htmlFor="opacity" className="text-xs">Opacity (0-1)</Label>
+            <Input
+              id="opacity"
             type="number"
-            step="0.05"
+              step="0.1"
             min={0}
             max={1}
-            className="h-8 w-32 rounded-md border border-input bg-background px-2 text-xs"
+              className="w-32"
             value={data.opacity ?? ""}
-            onChange={(e) => onChange({ opacity: e.target.value === "" ? undefined : Math.max(0, Math.min(1, Number(e.target.value))) })}
-          />
-        </label>
-      </div>
-
-      {(() => {
-        const livePreview = (() => {
-          if (mode === 'base64' && isValidDataUrlBase64(b64Draft)) return b64Draft;
-          if (mode === 'url' && (isValidHttpUrl(urlDraft) || isValidDataUrlBase64(urlDraft))) return urlDraft;
-          return null;
-        })();
-        const src = livePreview || data.image || '';
-        return src ? (
-          <div className="p-3 rounded-md bg-muted/50 border">
-            <div className="text-xs font-medium text-muted-foreground mb-2">Preview</div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="image preview" className="max-h-40 rounded-md border" />
+              onChange={(e) =>
+                onChange({
+                  opacity:
+                    e.target.value === ""
+                      ? undefined
+                      : Math.max(0, Math.min(1, Number(e.target.value))),
+                })
+              }
+              placeholder="1"
+            />
           </div>
-        ) : null;
-      })()}
+        </div>
+      )}
     </div>
   );
 }
-
-

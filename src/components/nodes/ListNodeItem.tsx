@@ -1,6 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ColorInput } from "@/components/ui/color-input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ListNode, OrderedListNode, UnorderedListNode } from "@/types";
 
 export function ListNodeItem({
@@ -10,184 +24,233 @@ export function ListNodeItem({
   data: ListNode;
   onChange: (next: Partial<ListNode>) => void;
 }) {
-  const isOrdered = useMemo(() => 'ol' in data, [data]);
+  const isOrdered = useMemo(() => "ol" in data, [data]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const items = isOrdered
+    ? (data as OrderedListNode).ol
+    : (data as UnorderedListNode).ul;
 
   const updateItem = (index: number, value: string) => {
+    const next = [...items];
+    next[index] = value;
     if (isOrdered) {
-      const next = [...(data as OrderedListNode).ol];
-      next[index] = value;
       onChange({ ol: next } as Partial<ListNode>);
     } else {
-      const next = [...(data as UnorderedListNode).ul];
-      next[index] = value;
       onChange({ ul: next } as Partial<ListNode>);
     }
   };
 
   const addItem = () => {
     if (isOrdered) {
-      onChange({ ol: [ ...(data as OrderedListNode).ol, 'item' ] } as Partial<ListNode>);
+      onChange({ ol: [...(data as OrderedListNode).ol, "New item"] } as Partial<ListNode>);
     } else {
-      onChange({ ul: [ ...(data as UnorderedListNode).ul, 'item' ] } as Partial<ListNode>);
+      onChange({ ul: [...(data as UnorderedListNode).ul, "New item"] } as Partial<ListNode>);
     }
   };
 
   const removeItem = (index: number) => {
+    const next = [...items];
+    next.splice(index, 1);
     if (isOrdered) {
-      const next = [...(data as OrderedListNode).ol];
-      next.splice(index, 1);
       onChange({ ol: next } as Partial<ListNode>);
     } else {
-      const next = [...(data as UnorderedListNode).ul];
-      next.splice(index, 1);
       onChange({ ul: next } as Partial<ListNode>);
     }
   };
 
+  const toggleType = () => {
+    if (isOrdered) {
+      const ol = (data as OrderedListNode).ol ?? [];
+      onChange({ ul: ol.length ? ol : ["item"] } as Partial<ListNode>);
+    } else {
+      const ul = (data as UnorderedListNode).ul ?? [];
+      onChange({ ol: ul.length ? ul : ["item"] } as Partial<ListNode>);
+    }
+  };
+
   return (
-    <div className="text-sm space-y-3">
+    <div className="space-y-4">
+      {/* Type toggle */}
       <div className="flex items-center gap-2">
-        <label className="text-xs text-muted-foreground min-w-[60px]">Type:</label>
-        <select
-          className="h-8 rounded-md border border-input bg-background px-2 text-xs hover:bg-accent transition-colors"
-          value={isOrdered ? 'ol' : 'ul'}
-          onChange={(e) => {
-            const kind = e.target.value;
-            if (kind === 'ol') {
-              const ul = (data as UnorderedListNode).ul ?? [];
-              onChange({ ol: ul.length ? ul : ['item'] } as Partial<ListNode>);
-            } else {
-              const ol = (data as OrderedListNode).ol ?? [];
-              onChange({ ul: ol.length ? ol : ['item'] } as Partial<ListNode>);
-            }
-          }}
-        >
-          <option value="ul">Unordered</option>
-          <option value="ol">Ordered</option>
-        </select>
-      </div>
-
-      <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground">List Items</div>
-        {(isOrdered ? (data as OrderedListNode).ol : (data as UnorderedListNode).ul).map((it, idx) => (
-          <div key={idx} className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground w-6">{idx + 1}.</span>
-            <input
-              className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-              value={it}
-              onChange={(e) => updateItem(idx, e.target.value)}
-            />
-            <button 
-              className="h-8 px-2 rounded-md border text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors" 
-              onClick={() => removeItem(idx)}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors w-full" onClick={addItem}>
-          Add Item
-        </button>
-      </div>
-
-      <div className="p-3 rounded-md bg-muted/50 border space-y-3">
-        <div className="text-xs font-medium text-muted-foreground">List Properties</div>
-        
-        {isOrdered ? (
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Numbering Type</span>
-              <select
-                className="h-8 rounded-md border border-input bg-background px-2 text-xs hover:bg-accent transition-colors"
-                value={(data as OrderedListNode).type ?? ''}
-                onChange={(e) => onChange({ type: (e.target.value || undefined) as OrderedListNode['type'] })}
-              >
-                <option value="">(default)</option>
-                <option value="lower-alpha">lower-alpha</option>
-                <option value="upper-alpha">upper-alpha</option>
-                <option value="upper-roman">upper-roman</option>
-                <option value="lower-roman">lower-roman</option>
-                <option value="none">none</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Start Number</span>
-              <input
-                type="number"
-                className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-                value={(data as OrderedListNode).start ?? ''}
-                onChange={(e) => onChange({ start: e.target.value === '' ? undefined : Number(e.target.value) })}
-              />
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded"
-                checked={Boolean((data as OrderedListNode).reversed)}
-                onChange={(e) => onChange({ reversed: e.target.checked })}
-              />
-              <span className="text-xs">Reversed</span>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Separator</span>
-              <input
-                className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-                placeholder=", or (,)"
-                value={Array.isArray((data as OrderedListNode).separator) ? ((data as OrderedListNode).separator as [string, string]).join('') : ((data as OrderedListNode).separator ?? '')}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v.startsWith('(') && v.endsWith(')') && v.includes(',')) {
-                    const inner = v.slice(1, -1);
-                    const parts = inner.split(',');
-                    onChange({ separator: [parts[0] ?? '', parts[1] ?? ''] as [string, string] });
-                  } else {
-                    onChange({ separator: v || undefined });
-                  }
-                }}
-              />
-            </label>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Bullet Type</span>
-              <select
-                className="h-8 rounded-md border border-input bg-background px-2 text-xs hover:bg-accent transition-colors"
-                value={(data as UnorderedListNode).type ?? ''}
-                onChange={(e) => onChange({ type: (e.target.value || undefined) as UnorderedListNode['type'] })}
-              >
-                <option value="">(default)</option>
-                <option value="square">square</option>
-                <option value="circle">circle</option>
-                <option value="none">none</option>
-              </select>
-            </label>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Text Color</span>
-            <input
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-              placeholder="#000000"
-              value={data.color ?? ''}
-              onChange={(e) => onChange({ color: e.target.value || undefined })}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Marker Color</span>
-            <input
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-              placeholder="#000000"
-              value={data.markerColor ?? ''}
-              onChange={(e) => onChange({ markerColor: e.target.value || undefined })}
-            />
-          </label>
+        <Label className="text-xs text-muted-foreground">Type:</Label>
+        <div className="inline-flex rounded-md border border-border">
+          <button
+            onClick={() => isOrdered && toggleType()}
+            className={`px-3 py-1.5 text-xs transition-colors ${
+              !isOrdered ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+            }`}
+          >
+            • Unordered
+          </button>
+          <button
+            onClick={() => !isOrdered && toggleType()}
+            className={`px-3 py-1.5 text-xs transition-colors border-l border-border ${
+              isOrdered ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+            }`}
+          >
+            1. Ordered
+          </button>
         </div>
       </div>
+
+      {/* List items */}
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2 group">
+            <div className="flex-shrink-0 text-muted-foreground/40 cursor-grab">
+              <GripVertical className="h-4 w-4" />
+            </div>
+            <span className="flex-shrink-0 w-6 text-xs text-muted-foreground text-right">
+              {isOrdered ? `${idx + 1}.` : "•"}
+            </span>
+            <Input
+              value={item}
+              onChange={(e) => updateItem(idx, e.target.value)}
+              placeholder="List item..."
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => removeItem(idx)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Add item button */}
+      <Button variant="outline" size="sm" onClick={addItem} className="gap-1.5">
+        <Plus className="h-3.5 w-3.5" />
+        Add Item
+      </Button>
+
+      <Separator />
+
+      {/* Advanced options toggle */}
+      <button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {showAdvanced ? (
+          <ChevronUp className="h-3.5 w-3.5" />
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5" />
+        )}
+        List Options
+      </button>
+
+      {/* Advanced options */}
+      {showAdvanced && (
+        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-4">
+          {isOrdered ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="numbering-type" className="text-xs">
+                  Numbering Type
+                </Label>
+                <Select
+                  value={(data as OrderedListNode).type ?? "__default__"}
+                  onValueChange={(value) =>
+                    onChange({
+                      type: (value === "__default__" ? undefined : value) as OrderedListNode["type"],
+                    })
+                  }
+                >
+                  <SelectTrigger id="numbering-type">
+                    <SelectValue placeholder="(default)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">(default)</SelectItem>
+                    <SelectItem value="lower-alpha">a, b, c...</SelectItem>
+                    <SelectItem value="upper-alpha">A, B, C...</SelectItem>
+                    <SelectItem value="lower-roman">i, ii, iii...</SelectItem>
+                    <SelectItem value="upper-roman">I, II, III...</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="start-number" className="text-xs">
+                  Start Number
+                </Label>
+                <Input
+                  id="start-number"
+                  type="number"
+                  value={(data as OrderedListNode).start ?? ""}
+                  onChange={(e) =>
+                    onChange({
+                      start: e.target.value === "" ? undefined : Number(e.target.value),
+                    })
+                  }
+                  placeholder="1"
+                />
+              </div>
+              <div className="flex items-center gap-2 col-span-2">
+                <Switch
+                  id="reversed"
+                  checked={Boolean((data as OrderedListNode).reversed)}
+                  onCheckedChange={(checked) => onChange({ reversed: checked })}
+                />
+                <Label htmlFor="reversed" className="text-sm">
+                  Reversed order
+                </Label>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="bullet-type" className="text-xs">
+                Bullet Type
+              </Label>
+              <Select
+                value={(data as UnorderedListNode).type ?? "__default__"}
+                onValueChange={(value) =>
+                  onChange({
+                    type: (value === "__default__" ? undefined : value) as UnorderedListNode["type"],
+                  })
+                }
+              >
+                <SelectTrigger id="bullet-type">
+                  <SelectValue placeholder="(default)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default__">(default)</SelectItem>
+                  <SelectItem value="square">Square</SelectItem>
+                  <SelectItem value="circle">Circle</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="text-color" className="text-xs">
+                Text Color
+              </Label>
+              <ColorInput
+                id="text-color"
+                placeholder="#000000"
+                value={data.color ?? ""}
+                onChange={(e) => onChange({ color: e.target.value || undefined })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="marker-color" className="text-xs">
+                Marker Color
+              </Label>
+              <ColorInput
+                id="marker-color"
+                placeholder="#000000"
+                value={data.markerColor ?? ""}
+                onChange={(e) => onChange({ markerColor: e.target.value || undefined })}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-

@@ -1,35 +1,49 @@
 @import "tailwindcss";
 
+/* ============================================
+   Ink & Paper - Editorial Minimalism Theme
+   ============================================ */
+
 :root {
-  --background: 0 0% 97%;
-  --foreground: 240 10% 3.9%;
+  /* Warm stone-based palette */
+  --background: 40 6% 98%;           /* #FAFAF9 warm white */
+  --foreground: 24 10% 10%;          /* #1C1917 warm black */
 
-  --card: 0 0% 98%;
-  --card-foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;                 /* #FFFFFF */
+  --card-foreground: 24 10% 10%;     /* #1C1917 */
 
-  --popover: 0 0% 98%;
-  --popover-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;              /* #FFFFFF */
+  --popover-foreground: 24 10% 10%;  /* #1C1917 */
 
-  --primary: 240 6% 8%;
-  --primary-foreground: 0 0% 98%;
+  /* Teal primary - the signature accent */
+  --primary: 168 76% 32%;            /* #0D9488 teal-600 */
+  --primary-foreground: 0 0% 100%;   /* #FFFFFF */
 
-  --secondary: 240 13% 72%;
-  --secondary-foreground: 240 12% 18%;
+  --secondary: 40 6% 96%;            /* #F5F5F4 stone-100 */
+  --secondary-foreground: 24 6% 25%; /* #44403C stone-700 */
 
-  --muted: 240 13% 72%;
-  --muted-foreground: 240 6% 25%;
+  --muted: 40 6% 96%;                /* #F5F5F4 stone-100 */
+  --muted-foreground: 25 5% 45%;     /* #78716C stone-500 */
 
-  --accent: 240 13% 72%;
-  --accent-foreground: 240 12% 18%;
+  /* Amber accent for highlights */
+  --accent: 38 92% 50%;              /* #F59E0B amber-500 */
+  --accent-foreground: 24 10% 10%;   /* #1C1917 */
 
-  --destructive: 0 75% 55%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: 0 72% 51%;          /* #DC2626 red-600 */
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 240 10% 68%;
-  --input: 240 10% 68%;
-  --ring: 240 6% 8%;
+  --border: 24 6% 90%;               /* #E7E5E4 stone-200 */
+  --input: 24 6% 90%;                /* #E7E5E4 stone-200 */
+  --ring: 168 76% 32%;               /* #0D9488 teal-600 */
 
   --radius: 0.5rem;
+
+  /* Node type accent colors - Light mode */
+  --node-text: 168 76% 32%;          /* #0D9488 teal-600 */
+  --node-image: 263 70% 50%;         /* #7C3AED violet-600 */
+  --node-list: 160 84% 39%;          /* #059669 emerald-600 */
+  --node-table: 32 95% 44%;          /* #D97706 amber-600 */
+  --node-custom: 350 89% 50%;        /* #E11D48 rose-600 */
 }
 
 @theme inline {
@@ -63,40 +77,304 @@
 
   --radius: var(--radius);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Typography - Ink & Paper fonts */
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-serif: var(--font-dm-serif), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Node colors as CSS custom properties */
+  --color-node-text: hsl(var(--node-text));
+  --color-node-image: hsl(var(--node-image));
+  --color-node-list: hsl(var(--node-list));
+  --color-node-table: hsl(var(--node-table));
+  --color-node-custom: hsl(var(--node-custom));
 }
 
 .dark {
-  --background: 240 10% 8%;
-  --foreground: 0 0% 98%;
+  /* Warm dark palette */
+  --background: 24 10% 10%;          /* #1C1917 warm black */
+  --foreground: 40 6% 98%;           /* #FAFAF9 warm white */
 
-  --card: 240 10% 10%;
-  --card-foreground: 0 0% 98%;
+  --card: 24 10% 15%;                /* #292524 stone-800 */
+  --card-foreground: 40 6% 98%;      /* #FAFAF9 */
 
-  --popover: 240 10% 10%;
-  --popover-foreground: 0 0% 98%;
+  --popover: 24 10% 15%;             /* #292524 stone-800 */
+  --popover-foreground: 40 6% 98%;   /* #FAFAF9 */
 
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 10% 6%;
+  /* Teal primary - lighter in dark mode */
+  --primary: 168 65% 50%;            /* #2DD4BF teal-400 */
+  --primary-foreground: 24 10% 10%;  /* #1C1917 */
 
-  --secondary: 240 10% 31%;
-  --secondary-foreground: 0 0% 98%;
+  --secondary: 24 6% 25%;            /* #44403C stone-700 */
+  --secondary-foreground: 40 6% 98%; /* #FAFAF9 */
 
-  --muted: 240 10% 31%;
-  --muted-foreground: 240 5% 70%;
+  --muted: 24 6% 25%;                /* #44403C stone-700 */
+  --muted-foreground: 24 6% 65%;     /* #A8A29E stone-400 */
 
-  --accent: 240 10% 31%;
-  --accent-foreground: 0 0% 98%;
+  /* Amber accent - lighter in dark mode */
+  --accent: 43 96% 56%;              /* #FBBF24 amber-400 */
+  --accent-foreground: 24 10% 10%;   /* #1C1917 */
 
-  --destructive: 0 65% 45%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: 0 91% 71%;          /* #F87171 red-400 */
+  --destructive-foreground: 24 10% 10%;
 
-  --border: 240 8% 30%;
-  --input: 240 8% 30%;
-  --ring: 240 5% 20%;
+  --border: 24 6% 25%;               /* #44403C stone-700 */
+  --input: 24 6% 25%;                /* #44403C stone-700 */
+  --ring: 168 65% 50%;               /* #2DD4BF teal-400 */
+
+  /* Node type accent colors - Dark mode (lighter variants) */
+  --node-text: 168 65% 50%;          /* #2DD4BF teal-400 */
+  --node-image: 263 70% 71%;         /* #A78BFA violet-400 */
+  --node-list: 160 60% 55%;          /* #34D399 emerald-400 */
+  --node-table: 43 96% 56%;          /* #FBBF24 amber-400 */
+  --node-custom: 350 89% 72%;        /* #FB7185 rose-400 */
 }
 
 body {
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* ============================================
+   Typography Utilities
+   ============================================ */
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Node name styling - editorial serif */
+.node-name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+
+/* ============================================
+   Node Type Color Utilities
+   ============================================ */
+
+/* Text/Paragraph nodes */
+.node-accent-text {
+  --node-color: var(--node-text);
+}
+
+.node-accent-text .node-border {
+  border-left-color: hsl(var(--node-text));
+  background-color: hsl(var(--node-text));
+}
+
+.node-accent-text .node-icon {
+  color: hsl(var(--node-text));
+}
+
+.node-accent-text .node-badge {
+  background-color: hsl(var(--node-text) / 0.1);
+  color: hsl(var(--node-text));
+}
+
+/* Image nodes */
+.node-accent-image {
+  --node-color: var(--node-image);
+}
+
+.node-accent-image .node-border {
+  border-left-color: hsl(var(--node-image));
+  background-color: hsl(var(--node-image));
+}
+
+.node-accent-image .node-icon {
+  color: hsl(var(--node-image));
+}
+
+.node-accent-image .node-badge {
+  background-color: hsl(var(--node-image) / 0.1);
+  color: hsl(var(--node-image));
+}
+
+/* List nodes */
+.node-accent-list {
+  --node-color: var(--node-list);
+}
+
+.node-accent-list .node-border {
+  border-left-color: hsl(var(--node-list));
+  background-color: hsl(var(--node-list));
+}
+
+.node-accent-list .node-icon {
+  color: hsl(var(--node-list));
+}
+
+.node-accent-list .node-badge {
+  background-color: hsl(var(--node-list) / 0.1);
+  color: hsl(var(--node-list));
+}
+
+/* Table nodes */
+.node-accent-table {
+  --node-color: var(--node-table);
+}
+
+.node-accent-table .node-border {
+  border-left-color: hsl(var(--node-table));
+  background-color: hsl(var(--node-table));
+}
+
+.node-accent-table .node-icon {
+  color: hsl(var(--node-table));
+}
+
+.node-accent-table .node-badge {
+  background-color: hsl(var(--node-table) / 0.1);
+  color: hsl(var(--node-table));
+}
+
+/* Custom/Unknown nodes */
+.node-accent-custom {
+  --node-color: var(--node-custom);
+}
+
+.node-accent-custom .node-border {
+  border-left-color: hsl(var(--node-custom));
+  background-color: hsl(var(--node-custom));
+}
+
+.node-accent-custom .node-icon {
+  color: hsl(var(--node-custom));
+}
+
+.node-accent-custom .node-badge {
+  background-color: hsl(var(--node-custom) / 0.1);
+  color: hsl(var(--node-custom));
+}
+
+/* Style nodes - use primary teal */
+.node-accent-style {
+  --node-color: var(--primary);
+}
+
+.node-accent-style .node-border {
+  border-left-color: hsl(var(--primary));
+  background-color: hsl(var(--primary));
+}
+
+.node-accent-style .node-icon {
+  color: hsl(var(--primary));
+}
+
+.node-accent-style .node-badge {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+/* ============================================
+   Animation Utilities
+   ============================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.2s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.2s ease-out;
+}
+
+/* ============================================
+   Transition Utilities
+   ============================================ */
+
+.transition-fast {
+  transition-duration: 150ms;
+}
+
+.transition-normal {
+  transition-duration: 200ms;
+}
+
+.transition-slow {
+  transition-duration: 300ms;
+}
+
+/* ============================================
+   Safe Area for Mobile Devices
+   ============================================ */
+
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* ============================================
+   Touch-friendly Styles
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets on touch devices */
+  button,
+  [role="button"],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch */
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+  }
 }

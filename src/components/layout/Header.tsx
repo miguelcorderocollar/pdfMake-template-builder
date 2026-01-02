@@ -1,28 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Menu, Save, Download, Eye, Upload, Settings, Info, ChevronDown, Trash } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Menu, Settings, FileOutput, Upload, Download, Trash, Copy, Info } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import type { Theme } from "@/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { useTemplateManagement } from "@/hooks/use-template-management";
 import { AboutDialog } from "@/components/AboutDialog";
+import { TemplateDropdown } from "@/components/TemplateDropdown";
+import { StatusIndicator } from "@/components/StatusIndicator";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
-  onPreview?: () => void;
-  onExportPDF?: () => void;
+  onOpenOutput?: () => void;
 }
 
 export function Header({
   onToggleSidebar,
-  onPreview,
-  onExportPDF,
+  onOpenOutput,
 }: HeaderProps) {
   const { state, dispatch } = useApp();
   const {
@@ -39,45 +36,18 @@ export function Header({
     importTemplateFromFile,
     importTemplateFromJSON,
   } = useTemplateManagement();
-  
-  const [exportOpen, setExportOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
+
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const importAllInputRef = useRef<HTMLInputElement | null>(null);
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const templateName = template?.name ?? "Untitled";
-  const setTemplateName = (name: string) => dispatch({ type: 'SET_TEMPLATE_NAME', payload: name });
-
-  // Close menus on outside click
-  const exportMenuRef = useRef<HTMLDivElement | null>(null);
-  const importMenuRef = useRef<HTMLDivElement | null>(null);
-  const templatesMenuRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) setExportOpen(false);
-      if (importMenuRef.current && !importMenuRef.current.contains(e.target as Node)) setImportOpen(false);
-      if (templatesMenuRef.current && !templatesMenuRef.current.contains(e.target as Node)) setTemplatesOpen(false);
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setExportOpen(false);
-        setImportOpen(false);
-        setTemplatesOpen(false);
-      }
-    }
-    document.addEventListener('click', onDocClick);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('click', onDocClick);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, []);
+  const setTemplateName = (name: string) => dispatch({ type: "SET_TEMPLATE_NAME", payload: name });
 
   function handleDelete() {
     if (!template) return;
@@ -89,10 +59,6 @@ export function Header({
     deleteTemplate(template.id);
   }
 
-  function handleSelectTemplate(id: string) {
-    selectTemplate(id);
-  }
-
   function handleImportFile(file: File, all: boolean) {
     importTemplateFromFile(file, all);
   }
@@ -101,134 +67,234 @@ export function Header({
     const success = importTemplateFromJSON(pasteText);
     if (success) {
       setPasteOpen(false);
-      setPasteText('');
+      setPasteText("");
     }
   }
 
-  const dirtyDot = isDirty ? (
-    <span className="inline-block h-2 w-2 rounded-full bg-amber-500" aria-label="Unsaved changes" />
-  ) : null;
+  // Close more menu on outside click
+  const handleMoreMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMoreMenuOpen((v) => !v);
+  };
 
   return (
-    <Card className="rounded-none border-x-0 border-t-0 border-b">
-      <div className="relative z-40 flex items-center justify-between px-4 py-3">
-        {/* Left Section - Menu and Template Name */}
-        <div className="flex items-center gap-4">
+    <header className="border-b border-border bg-card">
+      <div className="flex h-14 items-center justify-between px-3 md:px-4">
+        {/* Left Section - Menu and Logo */}
+        <div className="flex items-center gap-2 md:gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleSidebar}
-            className="h-8 w-8"
+            className="h-9 w-9"
+            aria-label="Toggle sidebar"
           >
-            <Menu className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
+            <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold">PDFMake Template Builder</h1>
-            <div className="flex items-center gap-2">
-              {dirtyDot}
-            <Input
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-                className="h-8 w-[240px]"
-              placeholder="Template name"
-            />
-              <Button variant="outline" size="sm" onClick={saveTemplate}>
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleDelete}
-                      aria-label="Delete template"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="z-[70]">
-                    Delete template
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-            </div>
+          <div className="hidden md:flex items-center gap-2">
+            <h1 className="text-base font-semibold tracking-tight">PDFMake Builder</h1>
           </div>
+
+          <div className="h-6 w-px bg-border hidden md:block" />
+
+          {/* Template Dropdown */}
+          <TemplateDropdown
+            templates={templates}
+            currentTemplate={template}
+            onSelect={selectTemplate}
+            onRename={setTemplateName}
+            onCreateNew={createNewTemplate}
+          />
+
+          {/* Status Indicator */}
+          <StatusIndicator isDirty={isDirty ?? false} />
+
+          {/* Save button - visible on larger screens */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={saveTemplate}
+            className="hidden md:inline-flex h-8 text-xs"
+          >
+            Save
+          </Button>
         </div>
 
-        {/* Right Section - Action Buttons */}
-        <div className="flex items-center gap-2">
-          <div className="relative" ref={templatesMenuRef}>
-            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setTemplatesOpen(v => !v); }}>
-              Templates
-              <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
+        {/* Right Section - Actions */}
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Output button - main action */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onOpenOutput}
+            className="h-8 gap-2"
+          >
+            <FileOutput className="h-4 w-4" />
+            <span className="hidden sm:inline">Output</span>
           </Button>
-            {templatesOpen && (
-              <div className="absolute right-0 mt-1 w-64 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
-                <div className="max-h-64 overflow-auto py-1">
-                  {templates.map(t => (
-                    <button key={t.id} className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setTemplatesOpen(false); handleSelectTemplate(t.id); }}>
-                      {t.name}
-                    </button>
-                  ))}
-                </div>
-                <div className="border-t">
-                  <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setTemplatesOpen(false); createNewTemplate(); }}>New template…</button>
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div className="relative" ref={importMenuRef}>
-            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setImportOpen(v => !v); }}>
-            <Upload className="h-4 w-4 mr-2" data-darkreader-ignore suppressHydrationWarning />
-            Import
-              <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
+          {/* More menu for secondary actions */}
+          <div className="relative" ref={moreMenuRef}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleMoreMenuClick}
+              className="h-9 w-9"
+              aria-label="More options"
+            >
+              <Settings className="h-4 w-4" />
             </Button>
-            {importOpen && (
-              <div className="absolute right-0 mt-1 w-56 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); importInputRef.current?.click(); }}>Import template from file</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); setPasteOpen(true); }}>Paste template (JSON)</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setImportOpen(false); importAllInputRef.current?.click(); }}>Import all templates</button>
-                <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f, false); e.currentTarget.value=''; }} />
-                <input ref={importAllInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f, true); e.currentTarget.value=''; }} />
+
+            {moreMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-1 w-56 rounded-md border border-border bg-popover shadow-lg z-[70] animate-fade-in"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Import section */}
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                    Import
+                  </div>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      importInputRef.current?.click();
+                    }}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Import template
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      setPasteOpen(true);
+                    }}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Paste JSON
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      importAllInputRef.current?.click();
+                    }}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Import all templates
+                  </button>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Export section */}
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                    Export
+                  </div>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      copyCurrentTemplate();
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Duplicate template
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      exportCurrent();
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                    Export current
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      exportAll();
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                    Export all templates
+                  </button>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Settings section */}
+                <div className="py-1">
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      setSettingsOpen(true);
+                    }}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      setAboutOpen(true);
+                    }}
+                  >
+                    <Info className="h-4 w-4" />
+                    About
+                  </button>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Danger zone */}
+                <div className="py-1">
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                      handleDelete();
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                    Delete template
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="relative" ref={exportMenuRef}>
-            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setExportOpen(v => !v); }}>
-              <Download className="h-4 w-4 mr-2" data-darkreader-ignore suppressHydrationWarning />
-              Export
-              <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
-          </Button>
-            {exportOpen && (
-              <div className="absolute right-0 mt-1 w-56 rounded-md border border-border bg-popover shadow z-[70]" onClick={(e) => e.stopPropagation()}>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); copyCurrentTemplate(); }}>Duplicate current template</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportCurrent(); }}>Export current template</button>
-                <button className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setExportOpen(false); exportAll(); }}>Export all templates</button>
-              </div>
-            )}
-          </div>
-
-          <Button variant="outline" size="sm" onClick={onExportPDF}>
-            <Download className="h-4 w-4 mr-2" data-darkreader-ignore suppressHydrationWarning />
-            Export PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={onPreview}>
-            <Eye className="h-4 w-4 mr-2" data-darkreader-ignore suppressHydrationWarning />
-            Preview
-          </Button>
-
-          <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="Settings">
-            <Settings className="h-4 w-4" data-darkreader-ignore suppressHydrationWarning />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => setAboutOpen(true)} aria-label="About">
-            <Info className="h-4 w-4" />
-          </Button>
+          {/* Hidden file inputs */}
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleImportFile(f, false);
+              e.currentTarget.value = "";
+            }}
+          />
+          <input
+            ref={importAllInputRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleImportFile(f, true);
+              e.currentTarget.value = "";
+            }}
+          />
         </div>
       </div>
 
@@ -241,11 +307,13 @@ export function Header({
           <textarea
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
-            className="min-h-40 w-full rounded-md border border-input bg-background p-2 text-sm"
+            className="min-h-40 w-full rounded-md border border-input bg-background p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder='{"id":"...","name":"...","docDefinition":{...}} or a docDefinition object'
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPasteOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setPasteOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handlePasteImport}>Import</Button>
           </DialogFooter>
         </DialogContent>
@@ -261,12 +329,16 @@ export function Header({
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">Theme</div>
-                <div className="text-sm text-muted-foreground">Choose light or dark mode</div>
+                <div className="text-sm text-muted-foreground">
+                  Choose light or dark mode
+                </div>
               </div>
               <select
-                className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-                value={state.theme ?? 'light'}
-                onChange={(e) => dispatch({ type: 'SET_THEME', payload: e.target.value as Theme })}
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={state.theme ?? "light"}
+                onChange={(e) =>
+                  dispatch({ type: "SET_THEME", payload: e.target.value as Theme })
+                }
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -293,6 +365,6 @@ export function Header({
         onConfirm={handleConfirmDelete}
         variant="destructive"
       />
-    </Card>
+    </header>
   );
 }

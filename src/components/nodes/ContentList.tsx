@@ -5,12 +5,24 @@ import { ContentListItem } from "./ContentListItem";
 
 export function ContentList() {
 	const { state } = useApp();
+  const content = state.currentTemplate?.docDefinition.content ?? [];
+
+  if (content.length === 0) {
 	return (
-		<div className="space-y-3">
-			<div className="-mx-3 mb-1 px-3 py-2 bg-card border-b rounded-t-lg">
-				<div className="text-xs font-medium text-muted-foreground">Content Items ({state.currentTemplate?.docDefinition.content.length ?? 0})</div>
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="text-muted-foreground">
+          <p className="text-lg font-serif mb-2">No content yet</p>
+          <p className="text-sm">
+            Add elements from the sidebar to start building your document
+          </p>
+        </div>
 			</div>
-			{state.currentTemplate?.docDefinition.content.map((item, index) => (
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {content.map((item, index) => (
 				<ContentListItem key={index} index={index} item={item} />
 			))}
 		</div>

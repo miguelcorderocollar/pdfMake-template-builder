@@ -2,158 +2,237 @@
 
 import { useEffect, useRef, useState } from "react";
 import { RichTextEditor } from "./RichTextEditor";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Settings2 } from "lucide-react";
 import type { TextSpan } from "@/types";
 import { isTextSpanArray } from "@/utils/node-type-guards";
 
 export function TextNodeItem({
-	text,
-	styleName,
-	onChangeText,
-	styles,
-	onChangeStyle,
-	onUpdateStyleDef,
+  text,
+  styleName,
+  onChangeText,
+  styles,
+  onChangeStyle,
+  onUpdateStyleDef,
 }: {
-	text: string | TextSpan[];
-	styleName?: string;
-	onChangeText: (t: string | TextSpan[]) => void;
-	styles?: Record<string, { fontSize?: number; bold?: boolean; italics?: boolean }>;
-	onChangeStyle: (name: string | undefined) => void;
-	onUpdateStyleDef: (name: string, def: Partial<{ fontSize?: number; bold?: boolean; italics?: boolean }>) => void;
+  text: string | TextSpan[];
+  styleName?: string;
+  onChangeText: (t: string | TextSpan[]) => void;
+  styles?: Record<string, { fontSize?: number; bold?: boolean; italics?: boolean }>;
+  onChangeStyle: (name: string | undefined) => void;
+  onUpdateStyleDef: (
+    name: string,
+    def: Partial<{ fontSize?: number; bold?: boolean; italics?: boolean }>
+  ) => void;
 }) {
-	const [editing, setEditing] = useState(false);
-	const [draft, setDraft] = useState(typeof text === "string" ? text : "");
-	const [showStyleEditor, setShowStyleEditor] = useState(false);
-	const [mode, setMode] = useState<"simple" | "rich">(isTextSpanArray(text) ? "rich" : "simple");
-	const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(typeof text === "string" ? text : "");
+  const [showStyleEditor, setShowStyleEditor] = useState(false);
+  const [mode, setMode] = useState<"simple" | "rich">(
+    isTextSpanArray(text) ? "rich" : "simple"
+  );
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-	useEffect(() => {
-		if (typeof text === "string") {
-			setDraft(text);
-			setMode("simple");
-		} else {
-			setMode("rich");
-		}
-	}, [text]);
+  useEffect(() => {
+    if (typeof text === "string") {
+      setDraft(text);
+      setMode("simple");
+    } else {
+      setMode("rich");
+    }
+  }, [text]);
 
-	useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
+  useEffect(() => {
+    if (editing && inputRef.current) inputRef.current.focus();
+  }, [editing]);
 
-	const currentDef = styleName && styles ? styles[styleName] : undefined;
+  const currentDef = styleName && styles ? styles[styleName] : undefined;
 
-	const convertToRich = () => {
-		const currentText = typeof text === "string" ? text : "";
-		onChangeText([currentText]);
-		setMode("rich");
-	};
+  const convertToRich = () => {
+    const currentText = typeof text === "string" ? text : "";
+    onChangeText([currentText]);
+    setMode("rich");
+  };
 
-	const convertToSimple = () => {
-		if (isTextSpanArray(text)) {
-			// Flatten all spans into a single string
-			const combined = text.map(span => typeof span === "string" ? span : span.text).join("");
-			onChangeText(combined);
-			setMode("simple");
-		}
-	};
+  const convertToSimple = () => {
+    if (isTextSpanArray(text)) {
+      const combined = text
+        .map((span) => (typeof span === "string" ? span : span.text))
+        .join("");
+      onChangeText(combined);
+      setMode("simple");
+    }
+  };
 
-	return (
-		<div className="text-sm space-y-3">
-			{/* Mode toggle */}
-			<div className="flex items-center justify-between gap-2">
-				<div className="flex items-center gap-2">
-					<label className="text-xs text-muted-foreground">Mode:</label>
-					<button
-						onClick={mode === "simple" ? convertToRich : convertToSimple}
-						className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors"
-						title={mode === "simple" ? "Switch to rich text mode" : "Switch to simple text mode"}
-					>
-						{mode === "simple" ? "Simple Text" : "Rich Text"} ↔
-					</button>
-				</div>
-			</div>
+  return (
+    <div className="space-y-4">
+      {/* Controls row */}
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Mode toggle */}
+        <div className="flex items-center gap-2">
+          <Label className="text-xs text-muted-foreground">Mode:</Label>
+          <div className="inline-flex rounded-md border border-border">
+            <button
+              onClick={() => mode === "rich" && convertToSimple()}
+              className={`px-3 py-1.5 text-xs transition-colors ${
+                mode === "simple"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-accent"
+              }`}
+            >
+              Simple
+            </button>
+            <button
+              onClick={() => mode === "simple" && convertToRich()}
+              className={`px-3 py-1.5 text-xs transition-colors border-l border-border ${
+                mode === "rich"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-accent"
+              }`}
+            >
+              Rich Text
+            </button>
+          </div>
+        </div>
 
-			<div className="flex items-center justify-between gap-2">
-				<div className="flex items-center gap-2">
-					<label className="text-xs text-muted-foreground">Style:</label>
-					<select
-						className="h-8 px-2 rounded-md border border-input bg-background text-xs hover:bg-accent transition-colors"
-						value={styleName ?? ''}
-						onChange={(e) => onChangeStyle(e.target.value || undefined)}
-					>
-						<option value="">(no style)</option>
-						{styles && Object.keys(styles).map((name) => (
-							<option key={name} value={name}>{name}</option>
-						))}
-					</select>
-				</div>
-				<button
-					className="h-8 px-3 rounded-md border text-xs hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					onClick={() => setShowStyleEditor((v) => !v)}
-					disabled={!styleName}
-					title={styleName ? `Edit style ${styleName}` : 'Select a style first'}
-				>
-					Edit Style
-				</button>
-			</div>
+        {/* Style selector */}
+        <div className="flex items-center gap-2">
+          <Label className="text-xs text-muted-foreground">Style:</Label>
+          <Select
+            value={styleName ?? "__none__"}
+            onValueChange={(value) => onChangeStyle(value === "__none__" ? undefined : value)}
+          >
+            <SelectTrigger className="h-8 w-[140px] text-xs">
+              <SelectValue placeholder="(no style)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">(no style)</SelectItem>
+              {styles &&
+                Object.keys(styles).map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {styleName && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowStyleEditor((v) => !v)}
+              className="h-8 w-8"
+              title={`Edit style "${styleName}"`}
+            >
+              <Settings2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
 
-			{mode === "rich" && isTextSpanArray(text) ? (
-				<RichTextEditor
-					spans={text}
-					onChange={onChangeText}
-					styles={styles}
-				/>
-			) : (
-				<>
-					{editing ? (
-						<textarea
-							ref={inputRef}
-							className="w-full resize-y rounded-md border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-							rows={3}
-							value={draft}
-							onChange={(e) => setDraft(e.target.value)}
-							onBlur={() => { setEditing(false); onChangeText(draft); }}
-							onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { setEditing(false); onChangeText(draft); } if (e.key === 'Escape') { setEditing(false); } }}
-						/>
-					) : (
-						<div className="whitespace-pre-wrap break-words cursor-text p-3 rounded-md hover:bg-accent/50 transition-colors min-h-[3rem] flex items-center" onClick={() => setEditing(true)}>
-							{(typeof text === "string" ? text : "") || <span className="text-muted-foreground italic">Click to edit text...</span>}
-						</div>
-					)}
-				</>
-			)}
+      {/* Style editor */}
+      {showStyleEditor && styleName && (
+        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-4">
+          <div className="text-sm font-medium">
+            Style: <span className="text-primary">{styleName}</span>
+          </div>
+          <Separator />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fontSize" className="text-xs">
+                Font Size
+              </Label>
+              <Input
+                id="fontSize"
+                type="number"
+                className="h-9"
+                value={currentDef?.fontSize ?? ""}
+                onChange={(e) =>
+                  onUpdateStyleDef(styleName, {
+                    fontSize: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+                placeholder="14"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <Switch
+                id="bold"
+                checked={Boolean(currentDef?.bold)}
+                onCheckedChange={(checked) => onUpdateStyleDef(styleName, { bold: checked })}
+              />
+              <Label htmlFor="bold" className="text-sm">
+                Bold
+              </Label>
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <Switch
+                id="italics"
+                checked={Boolean(currentDef?.italics)}
+                onCheckedChange={(checked) =>
+                  onUpdateStyleDef(styleName, { italics: checked })
+                }
+              />
+              <Label htmlFor="italics" className="text-sm">
+                Italics
+              </Label>
+            </div>
+          </div>
+        </div>
+      )}
 
-			{showStyleEditor && styleName && (
-				<div className="p-3 rounded-md bg-muted/50 border">
-					<div className="text-xs font-medium text-muted-foreground mb-2">Style Properties</div>
-					<div className="grid grid-cols-3 gap-3 text-xs">
-						<label className="flex flex-col gap-1">
-							<span className="text-muted-foreground">Font Size</span>
-							<input
-								type="number"
-								className="h-8 w-full rounded-md border border-input bg-background px-2"
-								value={currentDef?.fontSize ?? ''}
-								onChange={(e) => onUpdateStyleDef(styleName, { fontSize: e.target.value === '' ? undefined : Number(e.target.value) })}
-							/>
-						</label>
-						<label className="flex items-center gap-2">
-							<input
-								type="checkbox"
-								className="h-4 w-4 rounded"
-								checked={Boolean(currentDef?.bold)}
-								onChange={(e) => onUpdateStyleDef(styleName, { bold: e.target.checked })}
-							/>
-							<span>Bold</span>
-						</label>
-						<label className="flex items-center gap-2">
-							<input
-								type="checkbox"
-								className="h-4 w-4 rounded"
-								checked={Boolean(currentDef?.italics)}
-								onChange={(e) => onUpdateStyleDef(styleName, { italics: e.target.checked })}
-							/>
-							<span>Italics</span>
-						</label>
-					</div>
-				</div>
-			)}
-		</div>
-	);
+      {/* Text editor */}
+      {mode === "rich" && isTextSpanArray(text) ? (
+        <RichTextEditor spans={text} onChange={onChangeText} styles={styles} />
+      ) : (
+        <>
+          {editing ? (
+            <Textarea
+              ref={inputRef}
+              className="min-h-[100px] resize-y"
+              rows={4}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={() => {
+                setEditing(false);
+                onChangeText(draft);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  setEditing(false);
+                  onChangeText(draft);
+                }
+                if (e.key === "Escape") {
+                  setEditing(false);
+                }
+              }}
+              placeholder="Enter your text here..."
+            />
+          ) : (
+            <div
+              className="whitespace-pre-wrap break-words cursor-text p-4 rounded-md border border-dashed border-border hover:border-primary/50 hover:bg-accent/20 transition-colors min-h-[4rem]"
+              onClick={() => setEditing(true)}
+            >
+              {(typeof text === "string" ? text : "") || (
+                <span className="text-muted-foreground italic">
+                  Click to edit text...
+                </span>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 }

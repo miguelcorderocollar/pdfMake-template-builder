@@ -6,24 +6,32 @@ import type { DocDefinition } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
-// Simple collapsible without importing extra primitives
-function Collapsible({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border rounded-md">
-      <button className="w-full text-left px-3 py-2 font-medium" onClick={() => setOpen(!open)} aria-expanded={open}>
-        {title}
-      </button>
-      {open && <div className="p-3 space-y-3">{children}</div>}
-    </div>
-  );
-}
-
-const PAGE_SIZES = [
-  "A4", "LETTER", "A5", "A3", "LEGAL",
-];
+const PAGE_SIZES = ["A4", "LETTER", "A5", "A3", "LEGAL"];
 
 export function SettingsPanel() {
   const { state, dispatch } = useApp();
@@ -33,16 +41,16 @@ export function SettingsPanel() {
   const filename = state.filename ?? "document.pdf";
 
   // Header/Footer state
-  const [headerMode, setHeaderMode] = useState<'static' | 'dynamic'>('static');
-  const [footerMode, setFooterMode] = useState<'static' | 'dynamic'>('static');
-  const [headerContent, setHeaderContent] = useState('');
-  const [footerContent, setFooterContent] = useState('');
-  const [headerFunction, setHeaderFunction] = useState('');
-  const [footerFunction, setFooterFunction] = useState('');
+  const [headerMode, setHeaderMode] = useState<"static" | "dynamic">("static");
+  const [footerMode, setFooterMode] = useState<"static" | "dynamic">("static");
+  const [headerContent, setHeaderContent] = useState("");
+  const [footerContent, setFooterContent] = useState("");
+  const [headerFunction, setHeaderFunction] = useState("");
+  const [footerFunction, setFooterFunction] = useState("");
 
   type CommonDefaults = {
     pageSize: string;
-    pageOrientation: 'portrait' | 'landscape';
+    pageOrientation: "portrait" | "landscape";
     pageMargins: number[];
     background: string;
     watermarkText: string;
@@ -54,13 +62,16 @@ export function SettingsPanel() {
   const commonDefaults = useMemo<CommonDefaults>(() => {
     const d = ddStable as Partial<DocDefinition>;
     return {
-      pageSize: typeof d.pageSize === 'string' ? d.pageSize : 'A4',
-      pageOrientation: d.pageOrientation ?? 'portrait',
+      pageSize: typeof d.pageSize === "string" ? d.pageSize : "A4",
+      pageOrientation: d.pageOrientation ?? "portrait",
       pageMargins: Array.isArray(d.pageMargins) ? d.pageMargins : [40, 60, 40, 60],
-      background: typeof d.background === 'string' ? d.background : '',
-      watermarkText: typeof d.watermark === 'object' && d.watermark?.text ? String(d.watermark.text) : '',
-      infoTitle: d.info?.title ?? '',
-      language: d.language ?? '',
+      background: typeof d.background === "string" ? d.background : "",
+      watermarkText:
+        typeof d.watermark === "object" && d.watermark?.text
+          ? String(d.watermark.text)
+          : "",
+      infoTitle: d.info?.title ?? "",
+      language: d.language ?? "",
       filename,
     };
   }, [ddStable, filename]);
@@ -69,65 +80,72 @@ export function SettingsPanel() {
   useEffect(() => {
     const d = ddStable as DocDefinition;
     if (d.header) {
-      if (typeof d.header === 'function') {
-        setHeaderMode('dynamic');
+      if (typeof d.header === "function") {
+        setHeaderMode("dynamic");
         setHeaderFunction(d.header.toString());
-        setHeaderContent('');
+        setHeaderContent("");
       } else {
-        setHeaderMode('static');
-        setHeaderContent(typeof d.header === 'string' ? d.header : JSON.stringify(d.header, null, 2));
-        setHeaderFunction('');
+        setHeaderMode("static");
+        setHeaderContent(
+          typeof d.header === "string" ? d.header : JSON.stringify(d.header, null, 2)
+        );
+        setHeaderFunction("");
       }
     } else {
-      setHeaderMode('static');
-      setHeaderContent('');
-      setHeaderFunction('');
+      setHeaderMode("static");
+      setHeaderContent("");
+      setHeaderFunction("");
     }
 
     if (d.footer) {
-      if (typeof d.footer === 'function') {
-        setFooterMode('dynamic');
+      if (typeof d.footer === "function") {
+        setFooterMode("dynamic");
         setFooterFunction(d.footer.toString());
-        setFooterContent('');
+        setFooterContent("");
       } else {
-        setFooterMode('static');
-        setFooterContent(typeof d.footer === 'string' ? d.footer : JSON.stringify(d.footer, null, 2));
-        setFooterFunction('');
+        setFooterMode("static");
+        setFooterContent(
+          typeof d.footer === "string" ? d.footer : JSON.stringify(d.footer, null, 2)
+        );
+        setFooterFunction("");
       }
     } else {
-      setFooterMode('static');
-      setFooterContent('');
-      setFooterFunction('');
+      setFooterMode("static");
+      setFooterContent("");
+      setFooterFunction("");
     }
   }, [ddStable]);
 
   function updateCommon(partial: Partial<CommonDefaults>) {
     if (partial.filename !== undefined) {
-      dispatch({ type: 'SET_FILENAME', payload: partial.filename });
+      dispatch({ type: "SET_FILENAME", payload: partial.filename });
     }
     const d = ddStable as Partial<DocDefinition>;
     const toUpdate: Partial<DocDefinition> = {};
     if (partial.pageSize !== undefined) toUpdate.pageSize = partial.pageSize;
-    if (partial.pageOrientation !== undefined) toUpdate.pageOrientation = partial.pageOrientation;
+    if (partial.pageOrientation !== undefined)
+      toUpdate.pageOrientation = partial.pageOrientation;
     if (partial.pageMargins !== undefined) toUpdate.pageMargins = partial.pageMargins;
-    if (partial.background !== undefined) toUpdate.background = partial.background || undefined;
-    if (partial.watermarkText !== undefined) toUpdate.watermark = partial.watermarkText ? { text: partial.watermarkText } : undefined;
-    if (partial.infoTitle !== undefined) toUpdate.info = { ...(d.info ?? {}), title: partial.infoTitle };
-    if (partial.language !== undefined) toUpdate.language = partial.language || undefined;
+    if (partial.background !== undefined)
+      toUpdate.background = partial.background || undefined;
+    if (partial.watermarkText !== undefined)
+      toUpdate.watermark = partial.watermarkText ? { text: partial.watermarkText } : undefined;
+    if (partial.infoTitle !== undefined)
+      toUpdate.info = { ...(d.info ?? {}), title: partial.infoTitle };
+    if (partial.language !== undefined)
+      toUpdate.language = partial.language || undefined;
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+      dispatch({ type: "UPDATE_DOC_SETTINGS", payload: toUpdate });
     }
   }
 
   function updateHeader() {
     const toUpdate: Partial<DocDefinition> = {};
-    if (headerMode === 'static') {
+    if (headerMode === "static") {
       if (headerContent.trim()) {
         try {
-          // Try to parse as JSON first
           toUpdate.header = JSON.parse(headerContent);
         } catch {
-          // If not valid JSON, treat as string
           toUpdate.header = headerContent.trim();
         }
       } else {
@@ -136,35 +154,35 @@ export function SettingsPanel() {
     } else {
       if (headerFunction.trim()) {
         try {
-          // Create a function from the string - use the function body directly
           const funcBody = headerFunction.trim();
-          // Remove function wrapper if present
-          const cleanBody = funcBody.startsWith('function') ?
-            funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, '$1') :
-            funcBody;
-          toUpdate.header = new Function('currentPage', 'pageCount', 'pageSize', cleanBody) as DocDefinition['header'];
+          const cleanBody = funcBody.startsWith("function")
+            ? funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, "$1")
+            : funcBody;
+          toUpdate.header = new Function(
+            "currentPage",
+            "pageCount",
+            "pageSize",
+            cleanBody
+          ) as DocDefinition["header"];
         } catch (error) {
-          console.error('Invalid header function:', error);
-          // Keep existing header if function is invalid
+          console.error("Invalid header function:", error);
         }
       } else {
         toUpdate.header = undefined;
       }
     }
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+      dispatch({ type: "UPDATE_DOC_SETTINGS", payload: toUpdate });
     }
   }
 
   function updateFooter() {
     const toUpdate: Partial<DocDefinition> = {};
-    if (footerMode === 'static') {
+    if (footerMode === "static") {
       if (footerContent.trim()) {
         try {
-          // Try to parse as JSON first
           toUpdate.footer = JSON.parse(footerContent);
         } catch {
-          // If not valid JSON, treat as string
           toUpdate.footer = footerContent.trim();
         }
       } else {
@@ -173,41 +191,35 @@ export function SettingsPanel() {
     } else {
       if (footerFunction.trim()) {
         try {
-          // Create a function from the string - use the function body directly
           const funcBody = footerFunction.trim();
-          // Remove function wrapper if present
-          const cleanBody = funcBody.startsWith('function') ?
-            funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, '$1') :
-            funcBody;
-          toUpdate.footer = new Function('currentPage', 'pageCount', 'pageSize', cleanBody) as DocDefinition['footer'];
+          const cleanBody = funcBody.startsWith("function")
+            ? funcBody.replace(/^function\s*\([^)]*\)\s*\{([\s\S]*)\}$/, "$1")
+            : funcBody;
+          toUpdate.footer = new Function(
+            "currentPage",
+            "pageCount",
+            "pageSize",
+            cleanBody
+          ) as DocDefinition["footer"];
         } catch (error) {
-          console.error('Invalid footer function:', error);
-          // Keep existing footer if function is invalid
+          console.error("Invalid footer function:", error);
         }
       } else {
         toUpdate.footer = undefined;
       }
     }
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+      dispatch({ type: "UPDATE_DOC_SETTINGS", payload: toUpdate });
     }
-  }
-
-  function updateHeaderFunction() {
-    updateHeader();
-  }
-
-  function updateFooterFunction() {
-    updateFooter();
   }
 
   type AdvancedDefaults = {
     compress: boolean;
-    version?: DocDefinition['version'];
+    version?: DocDefinition["version"];
     userPassword: string;
     ownerPassword: string;
-    permissions: NonNullable<DocDefinition['permissions']>;
-    subset?: DocDefinition['subset'];
+    permissions: NonNullable<DocDefinition["permissions"]>;
+    subset?: DocDefinition["subset"];
     tagged: boolean;
     displayTitle: boolean;
     infoAuthor: string;
@@ -218,13 +230,13 @@ export function SettingsPanel() {
     return {
       compress: d.compress ?? true,
       version: d.version,
-      userPassword: d.userPassword ?? '',
-      ownerPassword: d.ownerPassword ?? '',
-      permissions: (d.permissions ?? {}) as NonNullable<DocDefinition['permissions']>,
+      userPassword: d.userPassword ?? "",
+      ownerPassword: d.ownerPassword ?? "",
+      permissions: (d.permissions ?? {}) as NonNullable<DocDefinition["permissions"]>,
       subset: d.subset,
       tagged: d.tagged ?? false,
       displayTitle: d.displayTitle ?? false,
-      infoAuthor: d.info?.author ?? '',
+      infoAuthor: d.info?.author ?? "",
     };
   })();
 
@@ -233,21 +245,26 @@ export function SettingsPanel() {
     const toUpdate: Partial<DocDefinition> = {};
     if (partial.compress !== undefined) toUpdate.compress = partial.compress;
     if (partial.version !== undefined) toUpdate.version = partial.version;
-    if (partial.userPassword !== undefined) toUpdate.userPassword = partial.userPassword || undefined;
-    if (partial.ownerPassword !== undefined) toUpdate.ownerPassword = partial.ownerPassword || undefined;
+    if (partial.userPassword !== undefined)
+      toUpdate.userPassword = partial.userPassword || undefined;
+    if (partial.ownerPassword !== undefined)
+      toUpdate.ownerPassword = partial.ownerPassword || undefined;
     if (partial.permissions !== undefined) toUpdate.permissions = partial.permissions;
     if (partial.subset !== undefined) toUpdate.subset = partial.subset;
     if (partial.tagged !== undefined) toUpdate.tagged = partial.tagged;
     if (partial.displayTitle !== undefined) toUpdate.displayTitle = partial.displayTitle;
-    if (partial.infoAuthor !== undefined) toUpdate.info = { ...(d.info ?? {}), author: partial.infoAuthor };
+    if (partial.infoAuthor !== undefined)
+      toUpdate.info = { ...(d.info ?? {}), author: partial.infoAuthor };
     if (Object.keys(toUpdate).length) {
-      dispatch({ type: 'UPDATE_DOC_SETTINGS', payload: toUpdate });
+      dispatch({ type: "UPDATE_DOC_SETTINGS", payload: toUpdate });
     }
   }
 
-  // Simple numeric array input for margins
   function parseMargins(value: string): number[] | null {
-    const parts = value.split(',').map((p) => p.trim()).filter(Boolean);
+    const parts = value
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
     if (parts.length === 0) return null;
     const nums = parts.map((p) => Number(p));
     if (nums.some((n) => Number.isNaN(n))) return null;
@@ -259,290 +276,379 @@ export function SettingsPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="p-3 space-y-3">
-        <div className="text-sm font-medium">Common</div>
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <label className="text-xs">Filename</label>
-            <Input value={commonDefaults.filename} onChange={(e) => updateCommon({ filename: e.target.value })} placeholder="document.pdf" />
+      <Card className="p-4 space-y-4">
+        <h3 className="text-sm font-medium">Common Settings</h3>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="filename">Filename</Label>
+            <Input
+              id="filename"
+              value={commonDefaults.filename}
+              onChange={(e) => updateCommon({ filename: e.target.value })}
+              placeholder="document.pdf"
+            />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs">Page size</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={String(commonDefaults.pageSize)} onChange={(e) => updateCommon({ pageSize: e.target.value })}>
-              {PAGE_SIZES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="pageSize">Page Size</Label>
+              <Select
+                value={commonDefaults.pageSize}
+                onValueChange={(value) => updateCommon({ pageSize: value })}
+              >
+                <SelectTrigger id="pageSize">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="orientation">Orientation</Label>
+              <Select
+                value={commonDefaults.pageOrientation}
+                onValueChange={(value) =>
+                  updateCommon({
+                    pageOrientation: value as "portrait" | "landscape",
+                  })
+                }
+              >
+                <SelectTrigger id="orientation">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="portrait">Portrait</SelectItem>
+                  <SelectItem value="landscape">Landscape</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs">Orientation</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={String(commonDefaults.pageOrientation)} onChange={(e) => updateCommon({ pageOrientation: e.target.value === 'landscape' ? 'landscape' : 'portrait' })}>
-              <option value="portrait">portrait</option>
-              <option value="landscape">landscape</option>
-            </select>
+          <div className="space-y-2">
+            <Label htmlFor="margins">Margins (pt) — 1, 2 or 4 numbers</Label>
+            <Input
+              id="margins"
+              defaultValue={(commonDefaults.pageMargins as number[]).join(", ")}
+              onBlur={(e) => {
+                const parsed = parseMargins(e.target.value);
+                if (parsed) updateCommon({ pageMargins: parsed });
+              }}
+              placeholder="40, 60, 40, 60"
+            />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs">Margins (pt) — accept 1, 2 or 4 numbers</label>
-            <Input defaultValue={(commonDefaults.pageMargins as number[]).join(', ')} onBlur={(e) => {
-              const parsed = parseMargins(e.target.value);
-              if (parsed) updateCommon({ pageMargins: parsed });
-            }} placeholder="40, 60, 40, 60" />
+          <div className="space-y-2">
+            <Label htmlFor="watermark">Watermark text</Label>
+            <Input
+              id="watermark"
+              defaultValue={commonDefaults.watermarkText}
+              onBlur={(e) => updateCommon({ watermarkText: e.target.value })}
+              placeholder="e.g. Confidential"
+            />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs">Background (text)</label>
-            <Input defaultValue={commonDefaults.background} onBlur={(e) => updateCommon({ background: e.target.value })} placeholder="e.g. simple text" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Watermark text</label>
-            <Input defaultValue={commonDefaults.watermarkText} onBlur={(e) => updateCommon({ watermarkText: e.target.value })} placeholder="e.g. Confidential" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Document title</label>
-            <Input defaultValue={commonDefaults.infoTitle} onBlur={(e) => updateCommon({ infoTitle: e.target.value })} placeholder="Awesome PDF" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Language (BCP-47)</label>
-            <Input defaultValue={commonDefaults.language} onBlur={(e) => updateCommon({ language: e.target.value })} placeholder="en-US" />
+          <div className="space-y-2">
+            <Label htmlFor="title">Document title</Label>
+            <Input
+              id="title"
+              defaultValue={commonDefaults.infoTitle}
+              onBlur={(e) => updateCommon({ infoTitle: e.target.value })}
+              placeholder="Awesome PDF"
+            />
           </div>
         </div>
       </Card>
 
-      <Collapsible title="Headers & Footers">
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-3">
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className="w-full justify-between">
+            Headers & Footers
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2 space-y-4">
+          <Card className="p-4 space-y-3">
             <h4 className="text-sm font-medium">Header</h4>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <button
-                  className={`px-3 py-1 text-xs rounded ${headerMode === 'static' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                  onClick={() => setHeaderMode('static')}
-                >
-                  Static
-                </button>
-                <button
-                  className={`px-3 py-1 text-xs rounded ${headerMode === 'dynamic' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                  onClick={() => setHeaderMode('dynamic')}
-                >
-                  Dynamic
-                </button>
-              </div>
-              {headerMode === 'static' ? (
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-xs">Header Content</label>
-                    <textarea
-                      value={headerContent}
-                      onChange={(e) => setHeaderContent(e.target.value)}
-                      placeholder='Enter header text or JSON structure (e.g., {"text": "Header", "style": "header", "alignment": "center"})'
-                      className="w-full h-20 p-2 text-xs border rounded resize-none"
-                    />
-                  </div>
-                  <Button size="sm" onClick={updateHeader} className="w-full">
-                    Update Header
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-xs">Function Code</label>
-                    <textarea
-                      value={headerFunction}
-                      onChange={(e) => setHeaderFunction(e.target.value)}
-                      placeholder={`// Example: return page header content
-return { text: 'Header Text', alignment: 'center', style: 'header' };`}
-                      className="w-full h-24 p-2 text-xs border rounded resize-none font-mono"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    Available variables: currentPage, pageCount, pageSize
-                  </div>
-                  <Button size="sm" onClick={updateHeaderFunction} className="w-full">
-                    Update Header Function
-                  </Button>
-                </div>
-              )}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={headerMode === "static" ? "default" : "outline"}
+                onClick={() => setHeaderMode("static")}
+              >
+                Static
+              </Button>
+              <Button
+                size="sm"
+                variant={headerMode === "dynamic" ? "default" : "outline"}
+                onClick={() => setHeaderMode("dynamic")}
+              >
+                Dynamic
+              </Button>
             </div>
-          </div>
+            {headerMode === "static" ? (
+              <div className="space-y-2">
+                <Label htmlFor="headerContent">Header Content</Label>
+                <Textarea
+                  id="headerContent"
+                  value={headerContent}
+                  onChange={(e) => setHeaderContent(e.target.value)}
+                  placeholder='Text or JSON (e.g., {"text": "Header", "alignment": "center"})'
+                  className="min-h-[80px]"
+                />
+                <Button size="sm" onClick={updateHeader} className="w-full">
+                  Update Header
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="headerFunction">Function Code</Label>
+                <Textarea
+                  id="headerFunction"
+                  value={headerFunction}
+                  onChange={(e) => setHeaderFunction(e.target.value)}
+                  placeholder="return { text: 'Header', alignment: 'center' };"
+                  className="min-h-[100px] font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Variables: currentPage, pageCount, pageSize
+                </p>
+                <Button size="sm" onClick={updateHeader} className="w-full">
+                  Update Header Function
+                </Button>
+              </div>
+            )}
+          </Card>
 
-          <div className="space-y-3">
+          <Card className="p-4 space-y-3">
             <h4 className="text-sm font-medium">Footer</h4>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <button
-                  className={`px-3 py-1 text-xs rounded ${footerMode === 'static' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                  onClick={() => setFooterMode('static')}
-                >
-                  Static
-                </button>
-                <button
-                  className={`px-3 py-1 text-xs rounded ${footerMode === 'dynamic' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                  onClick={() => setFooterMode('dynamic')}
-                >
-                  Dynamic
-                </button>
-              </div>
-              {footerMode === 'static' ? (
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-xs">Footer Content</label>
-                    <textarea
-                      value={footerContent}
-                      onChange={(e) => setFooterContent(e.target.value)}
-                      placeholder='Enter footer text or JSON structure (e.g., {"columns": ["Left", {"text": "Right", "alignment": "right"}]})'
-                      className="w-full h-20 p-2 text-xs border rounded resize-none"
-                    />
-                  </div>
-                  <Button size="sm" onClick={updateFooter} className="w-full">
-                    Update Footer
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-xs">Function Code</label>
-                    <textarea
-                      value={footerFunction}
-                      onChange={(e) => setFooterFunction(e.target.value)}
-                      placeholder={`// Example: return page footer content
-return {
-  columns: [
-    'Left part',
-    { text: 'Right part', alignment: 'right' }
-  ]
-};`}
-                      className="w-full h-24 p-2 text-xs border rounded resize-none font-mono"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    Available variables: currentPage, pageCount, pageSize
-                  </div>
-                  <Button size="sm" onClick={updateFooterFunction} className="w-full">
-                    Update Footer Function
-                  </Button>
-                </div>
-              )}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={footerMode === "static" ? "default" : "outline"}
+                onClick={() => setFooterMode("static")}
+              >
+                Static
+              </Button>
+              <Button
+                size="sm"
+                variant={footerMode === "dynamic" ? "default" : "outline"}
+                onClick={() => setFooterMode("dynamic")}
+              >
+                Dynamic
+              </Button>
             </div>
-          </div>
-        </div>
+            {footerMode === "static" ? (
+              <div className="space-y-2">
+                <Label htmlFor="footerContent">Footer Content</Label>
+                <Textarea
+                  id="footerContent"
+                  value={footerContent}
+                  onChange={(e) => setFooterContent(e.target.value)}
+                  placeholder='Text or JSON (e.g., {"columns": ["Left", {"text": "Right", "alignment": "right"}]})'
+                  className="min-h-[80px]"
+                />
+                <Button size="sm" onClick={updateFooter} className="w-full">
+                  Update Footer
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="footerFunction">Function Code</Label>
+                <Textarea
+                  id="footerFunction"
+                  value={footerFunction}
+                  onChange={(e) => setFooterFunction(e.target.value)}
+                  placeholder="return { columns: ['Left', { text: 'Right', alignment: 'right' }] };"
+                  className="min-h-[100px] font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Variables: currentPage, pageCount, pageSize
+                </p>
+                <Button size="sm" onClick={updateFooter} className="w-full">
+                  Update Footer Function
+                </Button>
+              </div>
+            )}
+          </Card>
+        </CollapsibleContent>
       </Collapsible>
 
-      <Collapsible title="Advanced settings">
-        <div className="grid grid-cols-1 gap-3">
-          <div className="space-y-1">
-            <label className="text-xs">Compress</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.compress ? 'true' : 'false'} onChange={(e) => updateAdvanced({ compress: e.target.value === 'true' })}>
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">PDF Version</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.version || ''} onChange={(e) => updateAdvanced({ version: (e.target.value || undefined) as DocDefinition['version'] })}>
-              <option value="">auto</option>
-              <option value="1.3">1.3</option>
-              <option value="1.4">1.4</option>
-              <option value="1.5">1.5</option>
-              <option value="1.6">1.6</option>
-              <option value="1.7">1.7</option>
-              <option value="1.7ext3">1.7ext3</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">User password</label>
-            <Input type="password" defaultValue={advanced.userPassword} onBlur={(e) => updateAdvanced({ userPassword: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Owner password</label>
-            <Input type="password" defaultValue={advanced.ownerPassword} onBlur={(e) => updateAdvanced({ ownerPassword: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Permissions</label>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="secondary" className="h-8 px-3">Edit permissions</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Permissions</DialogTitle>
-                </DialogHeader>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {([
-                    ['printing', ['lowResolution', 'highResolution', 'false']],
-                    ['modifying', ['true', 'false']],
-                    ['copying', ['true', 'false']],
-                    ['annotating', ['true', 'false']],
-                    ['fillingForms', ['true', 'false']],
-                    ['contentAccessibility', ['true', 'false']],
-                    ['documentAssembly', ['true', 'false']],
-                  ] as Array<[
-                    keyof NonNullable<DocDefinition['permissions']>,
-                    string[]
-                  ]>).map(([key, options]) => (
-                    <div key={String(key)} className="space-y-1">
-                      <label className="text-xs capitalize">{String(key)}</label>
-                      <select
-                        className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        value={String((advanced.permissions?.[key] ?? 'false'))}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const next: NonNullable<DocDefinition['permissions']> = { ...(advanced.permissions ?? {}) };
-                          if (key === 'printing') {
-                            next[key] = val === 'false' ? false : (val as 'lowResolution' | 'highResolution');
-                          } else {
-                            next[key] = val === 'true';
-                          }
-                          updateAdvanced({ permissions: next });
-                        }}
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className="w-full justify-between">
+            Advanced Settings
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">
+          <Card className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="compress"
+                  checked={advanced.compress}
+                  onCheckedChange={(checked) => updateAdvanced({ compress: checked })}
+                />
+                <Label htmlFor="compress">Compress</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="tagged"
+                  checked={advanced.tagged}
+                  onCheckedChange={(checked) => updateAdvanced({ tagged: checked })}
+                />
+                <Label htmlFor="tagged">Tagged PDF</Label>
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="pdfVersion">PDF Version</Label>
+              <Select
+                value={advanced.version || "__auto__"}
+                onValueChange={(value) =>
+                  updateAdvanced({
+                    version: (value === "__auto__" ? undefined : value) as DocDefinition["version"],
+                  })
+                }
+              >
+                <SelectTrigger id="pdfVersion">
+                  <SelectValue placeholder="auto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__auto__">auto</SelectItem>
+                  <SelectItem value="1.3">1.3</SelectItem>
+                  <SelectItem value="1.4">1.4</SelectItem>
+                  <SelectItem value="1.5">1.5</SelectItem>
+                  <SelectItem value="1.6">1.6</SelectItem>
+                  <SelectItem value="1.7">1.7</SelectItem>
+                  <SelectItem value="1.7ext3">1.7ext3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="userPassword">User Password</Label>
+                <Input
+                  id="userPassword"
+                  type="password"
+                  defaultValue={advanced.userPassword}
+                  onBlur={(e) => updateAdvanced({ userPassword: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ownerPassword">Owner Password</Label>
+                <Input
+                  id="ownerPassword"
+                  type="password"
+                  defaultValue={advanced.ownerPassword}
+                  onBlur={(e) => updateAdvanced({ ownerPassword: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Permissions</Label>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Edit permissions
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Permissions</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(
+                      [
+                        ["printing", ["lowResolution", "highResolution", "false"]],
+                        ["modifying", ["true", "false"]],
+                        ["copying", ["true", "false"]],
+                        ["annotating", ["true", "false"]],
+                        ["fillingForms", ["true", "false"]],
+                        ["contentAccessibility", ["true", "false"]],
+                        ["documentAssembly", ["true", "false"]],
+                      ] as Array<
+                        [keyof NonNullable<DocDefinition["permissions"]>, string[]]
                       >
-                        {options.map((o) => (
-                          <option key={o} value={o}>{o}</option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">PDF/A subset</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.subset || ''} onChange={(e) => updateAdvanced({ subset: (e.target.value || undefined) as DocDefinition['subset'] })}>
-              <option value="">none</option>
-              <option value="PDF/A-1">PDF/A-1</option>
-              <option value="PDF/A-1a">PDF/A-1a</option>
-              <option value="PDF/A-1b">PDF/A-1b</option>
-              <option value="PDF/A-2">PDF/A-2</option>
-              <option value="PDF/A-2a">PDF/A-2a</option>
-              <option value="PDF/A-2b">PDF/A-2b</option>
-              <option value="PDF/A-3">PDF/A-3</option>
-              <option value="PDF/A-3a">PDF/A-3a</option>
-              <option value="PDF/A-3b">PDF/A-3b</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Tagged PDF</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.tagged ? 'true' : 'false'} onChange={(e) => updateAdvanced({ tagged: e.target.value === 'true' })}>
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Display title in window</label>
-            <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" value={advanced.displayTitle ? 'true' : 'false'} onChange={(e) => updateAdvanced({ displayTitle: e.target.value === 'true' })}>
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Author</label>
-            <Input defaultValue={advanced.infoAuthor} onBlur={(e) => updateAdvanced({ infoAuthor: e.target.value })} placeholder="Author name" />
-          </div>
-        </div>
+                    ).map(([key, options]) => (
+                      <div key={String(key)} className="space-y-2">
+                        <Label className="text-xs capitalize">{String(key)}</Label>
+                        <Select
+                          value={String(advanced.permissions?.[key] ?? "false")}
+                          onValueChange={(val) => {
+                            const next: NonNullable<DocDefinition["permissions"]> = {
+                              ...(advanced.permissions ?? {}),
+                            };
+                            if (key === "printing") {
+                              next[key] =
+                                val === "false"
+                                  ? false
+                                  : (val as "lowResolution" | "highResolution");
+                            } else {
+                              next[key] = val === "true";
+                            }
+                            updateAdvanced({ permissions: next });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {options.map((o) => (
+                              <SelectItem key={o} value={o}>
+                                {o}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pdfSubset">PDF/A subset</Label>
+              <Select
+                value={advanced.subset || "__none__"}
+                onValueChange={(value) =>
+                  updateAdvanced({
+                    subset: (value === "__none__" ? undefined : value) as DocDefinition["subset"],
+                  })
+                }
+              >
+                <SelectTrigger id="pdfSubset">
+                  <SelectValue placeholder="none" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">none</SelectItem>
+                  <SelectItem value="PDF/A-1">PDF/A-1</SelectItem>
+                  <SelectItem value="PDF/A-1a">PDF/A-1a</SelectItem>
+                  <SelectItem value="PDF/A-1b">PDF/A-1b</SelectItem>
+                  <SelectItem value="PDF/A-2">PDF/A-2</SelectItem>
+                  <SelectItem value="PDF/A-2a">PDF/A-2a</SelectItem>
+                  <SelectItem value="PDF/A-2b">PDF/A-2b</SelectItem>
+                  <SelectItem value="PDF/A-3">PDF/A-3</SelectItem>
+                  <SelectItem value="PDF/A-3a">PDF/A-3a</SelectItem>
+                  <SelectItem value="PDF/A-3b">PDF/A-3b</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="author">Author</Label>
+              <Input
+                id="author"
+                defaultValue={advanced.infoAuthor}
+                onBlur={(e) => updateAdvanced({ infoAuthor: e.target.value })}
+                placeholder="Author name"
+              />
+            </div>
+          </Card>
+        </CollapsibleContent>
       </Collapsible>
     </div>
   );
 }
 
 export default SettingsPanel;
-
-

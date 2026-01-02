@@ -3,6 +3,7 @@
 import { Bold, Italic, Type, Palette, Link as LinkIcon } from "lucide-react";
 import type { TextSpan } from "@/types";
 import { getSpanProps, hasAnyLink } from "@/hooks/use-span-editor";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 interface SpanToolbarProps {
   span: TextSpan;
@@ -84,16 +85,19 @@ export function SpanToolbar({
       {/* Color */}
       <div className="flex items-center gap-1">
         <Palette className="h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          value={props.color ?? ""}
-          onChange={(e) => {
-            e.stopPropagation();
-            onSetColor(e.target.value || undefined);
-          }}
-          className="w-20 h-8 rounded-md border border-input bg-background px-2 text-xs"
-          placeholder="Color"
-        />
+        <div className="flex items-center gap-1.5">
+          {props.color && <ColorSwatch color={props.color} size="sm" />}
+          <input
+            type="text"
+            value={props.color ?? ""}
+            onChange={(e) => {
+              e.stopPropagation();
+              onSetColor(e.target.value || undefined);
+            }}
+            className="w-20 h-8 rounded-md border border-input bg-background px-2 text-xs"
+            placeholder="Color"
+          />
+        </div>
       </div>
 
       {/* Style reference */}

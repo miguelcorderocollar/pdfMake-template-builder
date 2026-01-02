@@ -3,6 +3,7 @@ import type { Template } from "@/types";
 import { useApp } from "@/lib/app-context";
 import {
   normalizeToTemplate,
+  normalizeToTemplateForImport,
   exportTemplateToFile,
   exportTemplatesToFile,
   generateUniqueTemplateName,
@@ -113,9 +114,20 @@ export function useTemplateManagement() {
         const text = String(reader.result ?? '');
         const json = JSON.parse(text);
         
+        const existingIds = templates.map(t => t.id);
+        
         if (importAll) {
           if (Array.isArray(json)) {
-            dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: json as Template[] } });
+            // Generate new IDs for all imported templates to avoid conflicts
+            // Process sequentially to ensure each template gets a unique ID
+            const importedTemplates: Template[] = [];
+            let currentIds = [...existingIds];
+            for (const t of json) {
+              const normalized = normalizeToTemplateForImport(t, currentIds);
+              importedTemplates.push(normalized);
+              currentIds.push(normalized.id);
+            }
+            dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: importedTemplates } });
           } else {
             alert('Expected an array of templates');
           }
@@ -124,9 +136,9 @@ export function useTemplateManagement() {
           if (Array.isArray(json)) {
             const t = json[0];
             if (!t) throw new Error('No template found in file');
-            newTemplate = normalizeToTemplate(t);
+            newTemplate = normalizeToTemplateForImport(t, existingIds);
           } else {
-            newTemplate = normalizeToTemplate(json);
+            newTemplate = normalizeToTemplateForImport(json, existingIds);
           }
           if (newTemplate) {
             dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [newTemplate] } });
@@ -139,7 +151,7 @@ export function useTemplateManagement() {
       }
     };
     reader.readAsText(file);
-  }, [dispatch]);
+  }, [dispatch, templates]);
 
   /**
    * Import a template from JSON string
@@ -147,7 +159,10 @@ export function useTemplateManagement() {
   const importTemplateFromJSON = useCallback((jsonString: string) => {
     try {
       const json = JSON.parse(jsonString);
-      const t = Array.isArray(json) ? normalizeToTemplate(json[0]) : normalizeToTemplate(json);
+      const existingIds = templates.map(t => t.id);
+      const t = Array.isArray(json) 
+        ? normalizeToTemplateForImport(json[0], existingIds) 
+        : normalizeToTemplateForImport(json, existingIds);
       dispatch({ type: 'IMPORT_TEMPLATES', payload: { templates: [t] } });
       dispatch({ type: 'SELECT_TEMPLATE_BY_ID', payload: { id: t.id } });
       return true;
@@ -156,7 +171,7 @@ export function useTemplateManagement() {
       alert('Invalid JSON');
       return false;
     }
-  }, [dispatch]);
+  }, [dispatch, templates]);
 
   return {
     // State
