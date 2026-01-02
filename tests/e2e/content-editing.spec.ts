@@ -152,9 +152,8 @@ test.describe('PDF Preview', () => {
   })
 
   test('can open PDF preview', async ({ page }) => {
-    // Click preview button
-    const previewButton = page.locator('button:has-text("Preview")')
-    await previewButton.click()
+    // Click preview button in the header
+    await page.getByRole('button', { name: 'Preview' }).click()
     
     // Should show PDF preview modal heading
     await expect(page.getByRole('heading', { name: 'PDF Preview' })).toBeVisible()
@@ -162,24 +161,23 @@ test.describe('PDF Preview', () => {
 
   test('can close PDF preview', async ({ page }) => {
     // Open preview
-    await page.locator('button:has-text("Preview")').click()
+    await page.getByRole('button', { name: 'Preview' }).click()
     await expect(page.getByRole('heading', { name: 'PDF Preview' })).toBeVisible()
     
-    // Close preview
-    const closeButton = page.locator('button').filter({ has: page.locator('[class*="X"]') }).first()
-    await closeButton.click()
+    // Close preview - click the X button next to the heading
+    const previewCard = page.locator('.fixed.inset-4')
+    await previewCard.getByRole('button').first().click()
     
     // Preview should be closed
-    await page.waitForTimeout(500)
     await expect(page.getByRole('heading', { name: 'PDF Preview' })).not.toBeVisible()
   })
 
   test('shows loading state while generating PDF', async ({ page }) => {
     // Open preview
-    await page.locator('button:has-text("Preview")').click()
+    await page.getByRole('button', { name: 'Preview' }).click()
     
     // Should show loading or PDF iframe eventually
-    const loadingOrPdf = page.locator('text=Generating PDF').or(page.locator('iframe[title="PDF Preview"]'))
+    const loadingOrPdf = page.getByText('Generating PDF').or(page.locator('iframe[title="PDF Preview"]'))
     await expect(loadingOrPdf.first()).toBeVisible({ timeout: 10000 })
   })
 })
@@ -191,30 +189,29 @@ test.describe('Import/Export', () => {
   })
 
   test('can open import menu', async ({ page }) => {
-    const importButton = page.locator('button:has-text("Import")')
-    await importButton.click()
+    await page.getByRole('button', { name: 'Import' }).click()
     
     // Should show import options
-    await expect(page.locator('button:has-text("Import template from file")')).toBeVisible()
-    await expect(page.locator('button:has-text("Paste template (JSON)")')).toBeVisible()
+    await expect(page.getByText('Import template from file')).toBeVisible()
+    await expect(page.getByText('Paste template (JSON)')).toBeVisible()
   })
 
   test('can open paste JSON dialog', async ({ page }) => {
-    await page.locator('button:has-text("Import")').click()
-    await page.locator('button:has-text("Paste template (JSON)")').click()
+    await page.getByRole('button', { name: 'Import' }).click()
+    await page.getByText('Paste template (JSON)').click()
     
     // Should show dialog
-    await expect(page.locator('text=Paste template JSON')).toBeVisible()
+    await expect(page.getByText('Paste template JSON')).toBeVisible()
   })
 
   test('can open export menu', async ({ page }) => {
-    const exportButton = page.locator('button:has-text("Export")').first()
-    await exportButton.click()
+    // Click export button (the one with "Export" text, not "Export PDF")
+    await page.getByRole('button', { name: 'Export', exact: true }).click()
     
     // Should show export options
-    await expect(page.locator('button:has-text("Duplicate current template")')).toBeVisible()
-    await expect(page.locator('button:has-text("Export current template")')).toBeVisible()
-    await expect(page.locator('button:has-text("Export all templates")')).toBeVisible()
+    await expect(page.getByText('Duplicate current template')).toBeVisible()
+    await expect(page.getByText('Export current template')).toBeVisible()
+    await expect(page.getByText('Export all templates')).toBeVisible()
   })
 })
 
@@ -225,22 +222,21 @@ test.describe('Theme', () => {
   })
 
   test('can open settings', async ({ page }) => {
-    const settingsButton = page.locator('button[aria-label="Settings"]')
-    await settingsButton.click()
+    await page.getByRole('button', { name: 'Settings' }).click()
     
     // Should show settings dialog
-    await expect(page.locator('text=Theme')).toBeVisible()
+    await expect(page.getByText('Theme')).toBeVisible()
   })
 
   test('can switch to dark theme', async ({ page }) => {
     // Open settings
-    await page.locator('button[aria-label="Settings"]').click()
+    await page.getByRole('button', { name: 'Settings' }).click()
     
     // Change to dark theme
     await page.locator('select').selectOption('dark')
     
     // Close settings
-    await page.locator('button:has-text("Close")').click()
+    await page.getByRole('button', { name: 'Close' }).click()
     
     // HTML element should have dark class
     const hasDarkClass = await page.evaluate(() => {

@@ -182,6 +182,7 @@ bun add @radix-ui/react-[component]
 3. **Stable dependencies** - Memoize objects/arrays in hook deps
 4. **Test coverage** - Maintain 80%+ for utils/lib
 5. **Zero warnings** - Fix all lint warnings before pushing
+6. **Run tests after changes** - Always run tests after modifying code, especially after updating test files. Use `bun test` for unit tests and `bun test:e2e` for E2E tests to verify everything passes before committing.
 
 ## Success Criteria
 

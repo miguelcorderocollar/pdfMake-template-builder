@@ -10,8 +10,9 @@ test.describe('Template Management', () => {
   })
 
   // Helper to get the Templates dropdown button in the header (not the sidebar tab)
+  // The header Templates button has a ChevronDown icon, the sidebar tab does not
   const getTemplatesDropdownButton = (page: import('@playwright/test').Page) =>
-    page.locator('header').getByRole('button', { name: 'Templates' })
+    page.getByRole('button', { name: 'Templates' }).filter({ has: page.locator('svg') })
 
   test('loads with default demo template', async ({ page }) => {
     await page.goto('/')
@@ -50,8 +51,7 @@ test.describe('Template Management', () => {
     await templateNameInput.fill('Saved Template')
 
     // Click save button
-    const saveButton = page.locator('button:has-text("Save")')
-    await saveButton.click()
+    await page.getByRole('button', { name: 'Save' }).click()
 
     // Dirty indicator should disappear
     const dirtyDot = page.locator('span[aria-label="Unsaved changes"]')
@@ -62,12 +62,11 @@ test.describe('Template Management', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Open templates dropdown (header button, not sidebar tab)
-    const templatesButton = getTemplatesDropdownButton(page)
-    await templatesButton.click()
+    // Open templates dropdown (header button with chevron)
+    await getTemplatesDropdownButton(page).click()
 
     // Click "New template..."
-    await page.locator('button:has-text("New template…")').click()
+    await page.getByText('New template…').click()
 
     // Should have a new template with "Untitled Template" name
     const templateNameInput = page.locator('input[placeholder="Template name"]')
@@ -83,10 +82,9 @@ test.describe('Template Management', () => {
     const templateNameInput = page.locator('input[placeholder="Template name"]')
     const initialName = await templateNameInput.inputValue()
 
-    // Create a new template first (header button, not sidebar tab)
-    const templatesButton = getTemplatesDropdownButton(page)
-    await templatesButton.click()
-    await page.locator('button:has-text("New template…")').click()
+    // Create a new template first (header button with chevron)
+    await getTemplatesDropdownButton(page).click()
+    await page.getByText('New template…').click()
     
     // Wait for the new template to be selected
     await page.waitForTimeout(500)
@@ -96,7 +94,7 @@ test.describe('Template Management', () => {
     expect(newName).toContain('Untitled Template')
 
     // Switch back to the original template
-    await templatesButton.click()
+    await getTemplatesDropdownButton(page).click()
     
     // Click on the first template in the list (original)
     const templateButtons = page.locator('button').filter({ hasText: initialName })
@@ -114,18 +112,16 @@ test.describe('Template Management', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // First create a second template so we can delete one (header button, not sidebar tab)
-    const templatesButton = getTemplatesDropdownButton(page)
-    await templatesButton.click()
-    await page.locator('button:has-text("New template…")').click()
+    // First create a second template so we can delete one (header button with chevron)
+    await getTemplatesDropdownButton(page).click()
+    await page.getByText('New template…').click()
     await page.waitForTimeout(500)
 
     // Click delete button
-    const deleteButton = page.locator('button[aria-label="Delete template"]')
-    await deleteButton.click()
+    await page.getByRole('button', { name: 'Delete template' }).click()
 
     // Confirm deletion in modal
-    const confirmButton = page.locator('button:has-text("Delete")').last()
+    const confirmButton = page.getByRole('button', { name: 'Delete' }).last()
     await confirmButton.click()
 
     // Should switch to another template after deletion
@@ -143,8 +139,7 @@ test.describe('Template Management', () => {
     const templateNameInput = page.locator('input[placeholder="Template name"]')
     await templateNameInput.fill('Persistent Template')
     
-    const saveButton = page.locator('button:has-text("Save")')
-    await saveButton.click()
+    await page.getByRole('button', { name: 'Save' }).click()
     
     await page.waitForTimeout(500)
 
@@ -166,15 +161,13 @@ test.describe('Template Management', () => {
     await templateNameInput.fill('Original Template')
     
     // Save it
-    const saveButton = page.locator('button:has-text("Save")')
-    await saveButton.click()
+    await page.getByRole('button', { name: 'Save' }).click()
     await page.waitForTimeout(300)
 
-    // Open export menu and duplicate
-    const exportButton = page.locator('button:has-text("Export")').first()
-    await exportButton.click()
+    // Open export menu (button with "Export" text and chevron, not "Export PDF")
+    await page.getByRole('button', { name: 'Export', exact: true }).click()
     
-    await page.locator('button:has-text("Duplicate current template")').click()
+    await page.getByText('Duplicate current template').click()
     await page.waitForTimeout(500)
 
     // Should now have "Copy of Original Template"
@@ -198,8 +191,7 @@ test.describe('Template Management', () => {
     await expect(dirtyDot).toBeVisible()
 
     // Save the template
-    const saveButton = page.locator('button:has-text("Save")')
-    await saveButton.click()
+    await page.getByRole('button', { name: 'Save' }).click()
 
     // Dirty indicator should disappear after save
     await expect(dirtyDot).not.toBeVisible()
