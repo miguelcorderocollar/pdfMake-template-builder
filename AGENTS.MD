@@ -1,271 +1,193 @@
-# AGENTS.MD - PDFMake Template Builder
+# AGENTS.MD
 
-This file contains instructions and best practices for AI coding agents working on this project.
+Guidelines for AI coding assistants working on this project.
 
-## ⚠️ IMPORTANT: Human-in-the-Loop Development
+## ⚠️ Important
 
-**The human developer (user) is in charge of running all terminal commands and managing the development environment.** Do not execute terminal commands yourself. Only provide the commands for the user to run.
+**Human controls the development environment.** Do not run terminal commands unless explicitly requested.
 
-## 📋 Project Overview
+## Project Overview
 
-This is a PDFMake Template Builder - a modern web application for creating and customizing PDFMake templates through a visual drag-and-drop interface. The application is built with Next.js, TypeScript, and Tailwind CSS.
+PDFMake Template Builder - Visual drag-and-drop interface for creating PDFMake templates. Built with Next.js, TypeScript, Tailwind CSS.
 
-### Key Features
-- Visual drag-and-drop template builder
-- Real-time PDF preview
-- Element customization (text, tables, images, lists)
-- Template import/export
-- Local storage persistence
-- Responsive design with dark mode
+**Key Features:** Template builder, real-time PDF preview, element customization, import/export, localStorage persistence, dark mode.
 
-## 🚀 Development Environment Setup
-
-### Prerequisites
-- Node.js 18+
-- Bun (recommended) or npm
-- Git
-
-### Setup Commands (Run by Human)
-```bash
-# Install dependencies
-bun install
-
-# Set up @shadcn/ui
-bunx shadcn@latest init --yes
-
-# Start development server
-bun dev
-
-# Build for production
-bun build
-
-# Start production server
-bun start
-
-# Run linting
-bun lint
-
-# Run TypeScript checking
-bun type-check
-
-# Run lint only on changed files (fast inner loop) and fail on warnings
-bun lint -- --cache --max-warnings=0
-
-# Build like Vercel (Next.js production build)
-bun run build
-```
-
-### UI Toolkit Setup (shadcn/ui + Radix primitives)
-
-This project uses lightweight shadcn-style primitives with Radix UI under the hood. Ensure these packages are installed when adding related components:
+## Quick Start
 
 ```bash
-# Core Radix primitives we rely on
-bun add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
-
-# If using npm/pnpm/yarn
-# npm i @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
-# pnpm add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
-# yarn add @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-tooltip
+bun install          # Install dependencies
+bun dev              # Start dev server
+bun test             # Run tests
+bun test:coverage    # Check coverage
+bun lint             # Lint code
+bun build            # Production build
 ```
 
-Notes:
-- Our shadcn-style wrappers live under `src/components/ui/` (e.g., `dialog.tsx`, `tabs.tsx`, `tooltip.tsx`).
-- When introducing a new primitive, create a minimal wrapper in `src/components/ui/` so styling and z-index are consistent across the app.
-- After adding new UI primitives, restart the dev server to clear module caches: `bun dev`.
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-pdfmake-builder/
-├── src/
-│   ├── app/                 # Next.js App Router pages
-│   ├── components/          # React components
-│   │   ├── ui/              # Reusable UI components
-│   │   ├── elements/        # Template element components
-│   │   ├── canvas/          # Canvas and drag-drop logic
-│   │   └── preview/         # PDF preview system
-│   ├── services/           # Business logic and utilities
-│   ├── types/              # TypeScript type definitions
-│   ├── lib/                # External library configurations
-│   └── utils/              # Utility functions
-├── docs/                   # Documentation and examples
-│   ├── plan/               # Development planning docs
-│   └── examples/           # pdfMake example templates
-├── public/                 # Static assets
-└── package.json
+src/
+├── app/              # Next.js App Router
+├── components/       # React components
+│   ├── ui/          # shadcn/ui components
+│   └── nodes/       # Content node editors
+├── hooks/            # Custom React hooks
+├── lib/              # App context, reducer
+├── services/         # Business logic
+├── types/            # TypeScript definitions
+└── utils/            # Pure utility functions
 ```
 
-## 🎨 Code Style Guidelines
+## Code Style
 
 ### TypeScript
-- **Strict mode enabled** - All TypeScript strict checks must pass
-- **Explicit types** - Avoid `any` type, use proper type definitions
-- **Interface over type** - Use interfaces for object shapes
-- **Type imports** - Use `import type` for type-only imports
-- **No `any`** - Do not introduce `any`. Extend `src/types/index.ts` with missing shapes.
-- **Use app types** - Prefer `DocDefinition`, `TableNode`, etc. from `src/types` over casting.
+- Strict mode enabled
+- No `any` - extend `src/types/index.ts` instead
+- Use `import type` for type-only imports
+- Prefer interfaces over types for object shapes
 
 ### React
-- **Functional components** - Use modern React patterns
-- **Custom hooks** - Extract reusable logic into custom hooks
-- **Component composition** - Prefer composition over inheritance
-- **Props interface** - Define props interfaces for all components
-- **Stable hook deps** - Keep dependency arrays stable. Do not depend on freshly created objects; memoize inputs first (e.g. `const ddStable = useMemo(() => dd ?? {}, [dd])`).
-- **No unused** - Remove unused imports/variables and avoid broad eslint-disable directives.
+- Functional components only
+- Extract logic to custom hooks
+- Stable hook dependencies (memoize objects/arrays)
+- Remove unused imports/variables
 
 ### Styling
-- **Tailwind CSS** - Use utility-first approach
-- **Consistent naming** - Follow Tailwind conventions
-- **Responsive design** - Mobile-first approach
-- **Dark mode support** - Use CSS custom properties for theming
+- Tailwind CSS utility-first
+- Single quotes, no semicolons
+- Dark mode via CSS custom properties
 
-### General
-- **Single quotes** - Use single quotes for strings
-- **No semicolons** - Omit semicolons where possible
-- **ES6+ features** - Use modern JavaScript features
-- **Descriptive names** - Use clear, descriptive variable/function names
+## Testing
 
-## 🧪 Testing Instructions
+**Stack:** Vitest (unit/component), React Testing Library, Playwright (E2E)
 
-### Testing Strategy
-- **Unit tests** - Test individual functions and components
-- **Integration tests** - Test component interactions
-- **E2E tests** - Test complete user workflows
-- **Visual regression** - Ensure UI consistency
-
-### Test Commands (Run by Human)
-```bash
-# Run all tests
-bun test
-
-# Run tests in watch mode
-bun test:watch
-
-# Run tests with coverage
-bun test:coverage
-
-# Run specific test file
-bun test -- <filename>
+**Structure:**
+```
+tests/
+├── unit/        # Pure functions (reducer, utils)
+├── hooks/       # Custom hooks
+├── components/  # React components
+└── e2e/         # Playwright browser tests
 ```
 
-## 🔧 Development Best Practices
+**Commands:**
+```bash
+bun test              # All tests
+bun test:watch        # Watch mode
+bun test:coverage     # Coverage report
+bun test:e2e          # E2E tests
+```
 
-### Git Workflow
-- **Feature branches** - Create branches for each feature/milestone
-- **Descriptive commits** - Write clear commit messages
-- **Pull request reviews** - Submit work for human review
-- **Squash commits** - Clean up commit history before merge
+**Coverage Target:** 80%+ for `src/lib/` and `src/utils/`
 
-### Code Organization
-- **Single responsibility** - Each file has one clear purpose
-- **DRY principle** - Don't repeat yourself
-- **SOLID principles** - Follow software design principles
-- **Clean architecture** - Separate concerns properly
-- **Types first** - When UI needs new shapes, update `src/types/index.ts` instead of casting.
+**Test Examples:**
+```typescript
+// Unit test
+import { describe, it, expect } from 'vitest'
+import { myFunction } from '@/utils/my-utils'
 
-### Performance
-- **Code splitting** - Use dynamic imports for large components
-- **Memoization** - Use React.memo and useMemo appropriately
-- **Stable memo** - Depend on primitives or memoized objects in hooks to avoid re-renders.
-- **Image optimization** - Compress and lazy load images
-- **Bundle analysis** - Monitor bundle size regularly
+describe('myFunction', () => {
+  it('does something', () => {
+    expect(myFunction('input')).toBe('output')
+  })
+})
 
-### Error Handling
-- **Graceful degradation** - Handle errors without breaking the app
-- **User feedback** - Provide clear error messages
-- **Logging** - Log errors for debugging (development only)
-- **Recovery options** - Allow users to recover from errors
+// Component test
+import { render, screen } from '@testing-library/react'
+import { TestAppProvider } from 'tests/test-utils'
 
-## 🚨 Critical Considerations
+render(
+  <TestAppProvider initialState={{ ... }}>
+    <MyComponent />
+  </TestAppProvider>
+)
+```
 
-### Security
-- **Input validation** - Sanitize all user inputs
-- **XSS prevention** - Escape HTML content
-- **Content Security Policy** - Implement CSP headers
-- **File upload safety** - Validate uploaded files
+## Git Workflow
 
-### Accessibility
-- **WCAG compliance** - Follow accessibility guidelines
-- **Keyboard navigation** - Support keyboard-only usage
-- **Screen readers** - Ensure compatibility with screen readers
-- **Color contrast** - Maintain proper contrast ratios
+### Creating Pull Requests
 
-### Browser Compatibility
-- **Modern browsers** - Chrome, Firefox, Safari, Edge
-- **Progressive enhancement** - Core functionality works everywhere
-- **Polyfills** - Add only when necessary
-- **Mobile support** - Test on various screen sizes
+1. **Create feature branch:**
+   ```bash
+   git checkout -b feat/feature-name
+   ```
 
-### CI/Build parity
-- **Build frequently** - After significant code changes, run `bun run build` locally to verify the project still builds.
-- **Zero warnings policy** - Run `bun lint -- --cache --max-warnings=0` and fix all warnings locally before pushing.
-- **Type-safety gate** - `bun type-check` must pass locally before pushing.
-- **Production build gate** - Run `bun run build` locally; the build must succeed.
-- **Avoid disables** - Do not use broad eslint disables; scope and justify any exceptions in review.
+2. **Make changes and commit:**
+   ```bash
+   git add .
+   git commit -m "feat: description"
+   ```
 
-## 📝 Documentation Requirements
+3. **Push branch:**
+   ```bash
+   git push origin feat/feature-name
+   ```
 
-### Code Documentation
-- **JSDoc comments** - Document complex functions
-- **Component props** - Document all component props
-- **Type definitions** - Clear type descriptions
-- **Usage examples** - Include examples in comments
+4. **Create PR with GitHub CLI:**
+   ```bash
+   gh pr create --title "Title" --body "Description"
+   ```
 
-### Project Documentation
-- **README updates** - Keep README current
-- **API documentation** - Document public APIs
-- **Architecture decisions** - Record important decisions
-- **Change log** - Track significant changes
+   **PR Template:**
+   ```bash
+   gh pr create \
+     --title "feat: add feature name" \
+     --body "## Summary
+   Brief description of changes.
 
-## 🔄 Development Workflow
+   ## Changes
+   - Item 1
+   - Item 2
 
-### Daily Workflow
-1. **Check current milestone** - Review development-plan.md
-2. **Implement features** - Focus on current milestone only
-3. **Test thoroughly** - Ensure all requirements are met
-4. **Run gates locally (must pass)**
-   - `bun lint -- --cache --max-warnings=0`
-   - `bun type-check`
-   - `bun run build`
-5. **Code review** - Submit for human review
-6. **Iterate** - Fix issues and improve based on feedback
+   ## Testing
+   - [ ] Tests pass
+   - [ ] Coverage maintained"
+   ```
 
-### Communication
-- **Clear instructions** - Provide specific implementation details
-- **Progress updates** - Report completion of tasks
-- **Blockers** - Immediately report any blocking issues
-- **Questions** - Ask for clarification when needed
+### Commit Messages
+- Format: `type: description` (e.g., `feat:`, `fix:`, `docs:`, `test:`)
+- Be concise and descriptive
 
-### Quality Assurance
-- **Self-review** - Check code against guidelines
-- **Testing** - Thoroughly test implemented features
-- **Edge cases** - Consider and handle edge cases
-- **Performance** - Ensure good performance
-- **Accessibility** - Verify accessibility compliance
-- **No warnings in CI** - PRs must not introduce ESLint warnings; Next.js build should be clean.
+## Pre-Push Checklist
 
-## 🎯 Success Criteria
+Before pushing code, ensure:
+- ✅ `bun lint -- --cache --max-warnings=0` passes
+- ✅ `bun test` passes
+- ✅ `bun build` succeeds
+- ✅ All tests have 80%+ coverage for critical paths
 
-### Code Quality
+## UI Components
+
+**shadcn/ui + Radix:** Wrappers live in `src/components/ui/`
+
+**Adding new UI component:**
+```bash
+bun add @radix-ui/react-[component]
+# Create wrapper in src/components/ui/[component].tsx
+```
+
+## Best Practices
+
+- **Single responsibility** - One purpose per file
+- **DRY** - Don't repeat code
+- **Types first** - Update `src/types/index.ts` instead of casting
+- **Memoization** - Use `useMemo` for expensive computations
+- **Error handling** - Graceful degradation, clear user feedback
+- **Accessibility** - WCAG compliant, keyboard navigation
+
+## Critical Rules
+
+1. **No `any` types** - Always use proper types
+2. **No unused code** - Remove dead code
+3. **Stable dependencies** - Memoize objects/arrays in hook deps
+4. **Test coverage** - Maintain 80%+ for utils/lib
+5. **Zero warnings** - Fix all lint warnings before pushing
+6. **Run tests after changes** - Always run tests after modifying code, especially after updating test files. Use `bun test` for unit tests and `bun test:e2e` for E2E tests to verify everything passes before committing.
+
+## Success Criteria
+
 - ✅ No TypeScript errors
-- ✅ No ESLint warnings
+- ✅ No ESLint warnings  
 - ✅ All tests passing
-- ✅ Good performance metrics
-- ✅ Accessibility compliant
-
-### Feature Completeness
-- ✅ Meets milestone requirements
-- ✅ Handles edge cases
-- ✅ Provides good user experience
-- ✅ Integrates well with existing code
-- ✅ Follows established patterns
-
-### Documentation
-- ✅ Code is well-documented
-- ✅ README is updated
-- ✅ Changes are recorded
-- ✅ Examples are provided
-- ✅ Tests are included
-
-Remember: **Always wait for human approval before proceeding to the next milestone.** The human developer controls the development environment and testing process.
+- ✅ 80%+ coverage on critical paths
+- ✅ Production build succeeds
